@@ -251,13 +251,8 @@ body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;ma
   </div>
 
   <div class="card">
-    <h2>🔑 AI API 설정</h2>
+    <h2>🔑 Moonshot API 설정</h2>
     <div class="form">
-      <label>API Provider</label>
-      <select id="kimiProvider">
-        <option value="moonshot">Moonshot (Kimi)</option>
-        <option value="openai">OpenAI</option>
-      </select>
       <label>API Key</label>
       <input type="text" id="kimiApiKey" placeholder="sk-...">
       <button class="btn btn-green" onclick="saveKimiApiKey()">저장</button>
@@ -1413,19 +1408,14 @@ function startKimiVoice() {
 
 function saveKimiApiKey() {
   var key = document.getElementById('kimiApiKey').value.trim();
-  var provider = document.getElementById('kimiProvider').value;
   if (!key) { alert('API 키를 입력하세요.'); return; }
   localStorage.setItem('kimi_api_key', key);
-  localStorage.setItem('kimi_provider', provider);
-  alert('API 설정이 저장되었습니다. (' + (provider === 'openai' ? 'OpenAI' : 'Moonshot') + ')');
+  alert('API 키가 저장되었습니다.');
 }
 function loadKimiApiKey() {
   var key = localStorage.getItem('kimi_api_key') || '';
-  var provider = localStorage.getItem('kimi_provider') || 'moonshot';
   var el = document.getElementById('kimiApiKey');
-  var provEl = document.getElementById('kimiProvider');
   if (el && key) el.value = key;
-  if (provEl) provEl.value = provider;
 }
 
 function handleKimiImage(input) {
@@ -1443,7 +1433,6 @@ function handleKimiImage(input) {
 
 function sendKimiImage(base64) {
   var key = document.getElementById('kimiApiKey').value.trim();
-  var provider = document.getElementById('kimiProvider').value || localStorage.getItem('kimi_provider') || 'moonshot';
   if (!key) { addKimiChatMessage('AI', 'API 키를 입력하고 저장하세요.'); return; }
   var summary = schedules.map(function(s) {
     var when = s.date ? s.date : ['일','월','화','수','목','금','토'][s.day] + '요일 반복';
@@ -1451,10 +1440,9 @@ function sendKimiImage(base64) {
   }).join('\n');
   var systemMsg = '당신은 Paul Bhang Schedule 앱의 일정 관리 도우미입니다. 이 사진(시간표, 강의 계획, 일정표 등)을 분석해서 일정을 추출하세요.\n\n[응답 규칙]\n1. JSON 형식: {"description":"확인 메시지","schedules":[{"id":"...","name":"...","day":"0~6또는빈값","date":"YYYY-MM-DD또는빈값","start":"HH:MM","end":"HH:MM","type":"personal/zoom/offline/other","loc":"장소","created_at":"..."}]}\n2. date와 day 중 하나만 사용.\n3. 현재 일정은 유지하고 추가/변경만 반영.\n\n[현재 일정]\n' + summary;
   addKimiChatMessage('AI', '사진 분석 중...');
-  var apiUrl = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.moonshot.cn/v1/chat/completions';
-  var model = provider === 'openai' ? 'gpt-4o-mini' : 'moonshot-v1-32k';
-  var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key };
-  if (provider !== 'openai') headers['x-msh-platform'] = 'web';
+  var apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
+  var model = 'moonshot-v1-32k';
+  var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
   fetch(apiUrl, {
     method: 'POST',
     headers: headers,
@@ -1513,7 +1501,7 @@ function sendKimiImage(base64) {
       addKimiChatMessage('AI', '사진 분석 중 오류가 발생했습니다. 응답:\n' + content.substring(0,400) + '\n\n오류: ' + e.message);
     }
   }).catch(function(e) {
-    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nAPI 설정(OpenAI/Moonshot)과 키를 확인해주세요.');
+    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nCORS 문제일 수 있습니다. 아래 해결 방법을 확인하세요.');
   });
 }
 function sendKimiChat() {
@@ -1537,7 +1525,6 @@ var __kimiLastResponse = null;
 
 function callKimiApi(prompt) {
   var key = document.getElementById('kimiApiKey').value.trim();
-  var provider = document.getElementById('kimiProvider').value || localStorage.getItem('kimi_provider') || 'moonshot';
   var resultDiv = document.getElementById('kimiResult');
   var preview = document.getElementById('kimiResultPreview');
   var desc = document.getElementById('kimiResultDesc');
@@ -1549,10 +1536,9 @@ function callKimiApi(prompt) {
   }).join('\n');
   var systemMsg = '당신은 Paul Bhang Schedule 앱의 일정 관리 도우미입니다.\n\n[중요 규칙]\n1. 사용자의 요청이 모호하거나 정보가 부족하면 JSON 대신 질문을 하세요.\n2. 요청이 명확하면 JSON 형식으로 응답하세요.\n3. JSON 형식: {"description":"사용자에게 보여줄 확인 메시지","schedules":[{"id":"...","name":"...","day":"0~6또는빈값","date":"YYYY-MM-DD또는빈값","start":"HH:MM","end":"HH:MM","type":"personal/zoom/offline/other","loc":"장소","created_at":"..."}]}\n4. date와 day 중 하나만 사용. 반복=day(0=일,1=월...6=토), 특정날짜=date.\n5. 수정/삭제 시 해당 일정만 변경하고 나머지는 그대로 포함.\n6. 삭제된 일정은 응답에 포함하지 마세요.\n7. 새 일정 id는 "sch_" + 타임스탬프.\n\n[현재 일정]\n' + summary;
   addKimiChatMessage('AI', '생각 중...');
-  var apiUrl = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.moonshot.cn/v1/chat/completions';
-  var model = provider === 'openai' ? 'gpt-4o-mini' : 'moonshot-v1-32k';
-  var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key };
-  if (provider !== 'openai') headers['x-msh-platform'] = 'web';
+  var apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
+  var model = 'moonshot-v1-32k';
+  var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
   fetch(apiUrl, {
     method: 'POST',
     headers: headers,
@@ -1606,7 +1592,7 @@ function callKimiApi(prompt) {
       addKimiChatMessage('AI', '응답 처리 중 오류가 발생했습니다. AI 응답:\n' + content.substring(0,400) + '\n\n오류: ' + parseErr.message);
     }
   }).catch(function(e) {
-    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nAPI 설정(OpenAI/Moonshot)과 키를 확인해주세요.');
+    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nCORS 문제일 수 있습니다. 아래 해결 방법을 확인하세요.');
   });
 }
 function cancelKimiResult() {
