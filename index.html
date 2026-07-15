@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Paul Bhang Schedule</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;margin:0;padding:0 0 80px;color:#333;overscroll-behavior-y:none}
+.header{background:#1a1a2e;color:white;padding:16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+.header .title-wrap{flex:1;text-align:center}
+.header h1{margin:0;font-size:20px}.header p{margin:4px 0 0;font-size:13px;opacity:.8}
+#tzBtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 12px;border-radius:16px;font-size:12px;cursor:pointer;white-space:nowrap}
+
+.tabs{display:flex;background:#fff;border-bottom:2px solid #ddd;overflow-x:auto;position:sticky;top:56px;z-index:99}
+.tabs button{flex:1;text-align:center;padding:14px 8px;color:#888;font-size:13px;font-weight:bold;border-bottom:3px solid transparent;white-space:nowrap;background:none;border:none;cursor:pointer}
+.tabs button.active{color:#D4736A;border-bottom-color:#D4736A}
+
+.section{padding:16px;display:none}.section.active{display:block}
+
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{margin:0 0 12px;font-size:16px;color:#1a1a2e}
+
+.today-header{text-align:center;padding:20px;background:#fff;border-radius:12px;margin-bottom:16px}
+.today-header .day{font-size:14px;color:#888}.today-header .date{font-size:24px;font-weight:bold;color:#1a1a2e;margin:4px 0}
+.today-header .tz{font-size:12px;color:#D4736A}
+
+.class-box{border-radius:10px;padding:12px;margin-bottom:10px;color:#fff}
+.class-box.blue{background:#5b7cfa}.class-box.coral{background:#D4736A}.class-box.sage{background:#4A857C}
+.class-box.purple{background:#9b59b6}.class-box.pink{background:#e84393}.class-box.gold{background:#D4A24C}
+.class-box .title{font-weight:bold;font-size:15px;margin-bottom:4px}
+.class-box .meta{font-size:12px;opacity:.9}.class-box .time{font-size:13px;margin-top:6px;font-weight:600}
+.class-box .map-link{display:inline-block;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:8px;font-size:11px;margin-top:8px;text-decoration:none;color:#fff}
+
+.empty{text-align:center;padding:40px;color:#aaa}.empty .emoji{font-size:40px;margin-bottom:8px}
+
+.grid-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.grid-table th{background:#1a1a2e;color:#fff;padding:8px 4px;text-align:center;font-size:12px}
+.grid-table th.time-col{background:#333;width:40px}.grid-table td.time-label{width:40px}
+.grid-table td{border:1px solid #eee;padding:2px;text-align:center;vertical-align:top;height:36px}
+.grid-table td.time-label{background:#f5f5f5;font-weight:bold;color:#888;font-size:11px}
+.grid-table .cell-item{border-radius:4px;padding:2px;color:#fff;font-size:9px;line-height:1.2;margin-bottom:1px;cursor:pointer}
+.grid-table .cell-item .n{font-weight:bold}.grid-table .cell-item .t{font-size:9px}
+
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-nav button{background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer;font-weight:bold}
+.cal-nav h3{margin:0;font-size:18px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-header{font-size:11px;color:#888;padding:8px 0;font-weight:bold}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:#fff;border:1px solid #eee;font-size:12px;position:relative;min-height:44px;cursor:pointer}
+.cal-day.today{border:2px solid #D4736A;font-weight:bold;color:#D4736A}.cal-day.other{opacity:.3}
+.cal-day .multi{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap;justify-content:center}
+.cal-day .multi-dot{width:5px;height:5px;border-radius:50%}
+.cal-day .day-num{position:absolute;top:3px;left:4px;font-size:10px;font-weight:bold}
+
+.voice-card{text-align:center;padding:30px 20px}
+.voice-btn{width:120px;height:120px;border-radius:50%;border:none;background:#D4736A;color:#fff;font-size:48px;cursor:pointer;box-shadow:0 4px 15px rgba(212,115,106,.4);transition:transform .2s,box-shadow .2s;margin:20px auto;display:flex;align-items:center;justify-content:center}
+.voice-btn:active{transform:scale(.95);box-shadow:0 2px 8px rgba(212,115,106,.3)}
+.voice-btn.listening{background:#e74c3c;animation:pulse 1.5s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(231,76,60,.4)}70%{box-shadow:0 0 0 20px rgba(231,76,60,0)}100%{box-shadow:0 0 0 0 rgba(231,76,60,0)}}
+.voice-result{background:#f8f8f8;border-radius:10px;padding:16px;margin-top:16px;text-align:left;font-size:14px;line-height:1.6}
+.voice-result .label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;font-weight:bold}
+.voice-examples{font-size:12px;color:#888;margin-top:12px;text-align:left}
+.voice-examples code{background:#eee;padding:2px 6px;border-radius:4px;font-size:11px;color:#555}
+
+.form label{display:block;font-size:13px;color:#888;font-weight:bold;margin:12px 0 6px}
+.form input,.form select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:bold;color:#fff;background:#D4736A;cursor:pointer;margin-top:12px}
+.btn-green{background:#4A857C}.btn-gray{background:#888}.btn-danger{background:#e74c3c}
+
+.saved-item{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#fafafa;border-radius:8px;margin-bottom:8px;border:1px solid #eee}
+.saved-item button{background:#eee;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:#e74c3c;font-weight:bold;font-size:12px}
+
+.alarm-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#fff;border-radius:10px;margin-bottom:8px;border:1px solid #eee}
+.alarm-item .name{font-weight:bold;font-size:14px}.alarm-item .time{font-size:12px;color:#888}
+.toggle{width:44px;height:24px;background:#ddd;border-radius:12px;position:relative;cursor:pointer;transition:.2s}.toggle.on{background:#4A857C}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s}.toggle.on::after{left:22px}
+
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:8px 0;z-index:100}
+.bottom button{text-align:center;color:#888;font-size:10px;padding:4px 8px;background:none;border:none;cursor:pointer}
+.bottom button.active{color:#D4736A}.bottom .icon{font-size:20px;display:block;margin-bottom:2px}
+
+.map-info{background:#f0f8ff;border-left:3px solid #4A857C;padding:12px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13px;color:#555;line-height:1.6}
+.map-info a{color:#4A857C;font-weight:bold;text-decoration:none}
+
+.status-bar{font-size:12px;padding:8px 16px;background:#fff3cd;color:#856404;border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.status-bar.online{background:#d4edda;color:#155724}
+.status-bar.offline{background:#f8d7da;color:#721c24}
+.status-bar .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+.modal h3{margin:0 0 16px;font-size:18px;color:#1a1a2e}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#888}
+
+.edit-form .form-row{display:flex;gap:8px;margin-bottom:12px}
+.edit-form .form-row>*{flex:1}
+
+.tz-toggle{display:flex;justify-content:center;gap:8px;padding:8px}
+.tz-toggle button{padding:6px 16px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer}
+.tz-toggle button.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+
+@media(min-width:500px){body{max-width:480px;margin:0 auto}.bottom{max-width:480px;left:50%;transform:translateX(-50%)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title-wrap">
+    <h1>📅 Paul Bhang Schedule</h1>
+    <p id="subTitle">중국 대학 + 온라인 + 개인 일정</p>
+  </div>
+  <button id="tzBtn" onclick="toggleTimezone()">🇨🇳 중국</button>
+</div>
+
+<div class="tabs">
+  <button class="active" onclick="showTab('today',this); return false;">오늘</button>
+  <button onclick="showTab('weekly',this); return false;">주간</button>
+  <button onclick="showTab('monthly',this); return false;">월간</button>
+  <button onclick="showTab('kimi',this); return false;">🤖 Kimi</button>
+  <button onclick="showTab('manage',this); return false;">관리</button>
+</div>
+
+<!-- TODAY -->
+<div id="today" class="section active">
+  <div id="todayStatus"></div>
+  <div class="today-header">
+    <div class="day" id="todayDay">--</div>
+    <div class="date" id="todayDate">--</div>
+  </div>
+  <div class="card" id="todayCard">
+    <div class="empty"><div class="emoji">☕</div><div>오늘은 일정이 없습니다</div><div style="font-size:13px;color:#aaa;margin-top:6px">관리 탭에서 추가하거나 음성으로 말해보세요</div></div>
+  </div>
+</div>
+
+<!-- WEEKLY -->
+<div id="weekly" class="section">
+  <div class="card">
+    <div class="cal-nav" style="margin-bottom:8px">
+      <button onclick="changeWeek(-1)">◀ 이전 주</button>
+      <h3 id="weeklyTitle" style="margin:0;font-size:16px">이번 주</h3>
+      <button onclick="changeWeek(1)">다음 주 ▶</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="grid-table" id="weeklyTable"></table>
+    </div>
+  </div>
+  <div class="card" style="background:#FFF8E7;border:2px solid #D4A24C">
+    <h2>📢 9월 개강 후 추가</h2>
+    <p style="font-size:13px;line-height:1.8;color:#5A4A1F">
+      • 월 08:50 비즈니스 조선어 (창전)<br>
+      • 수 10:40 비즈니스 조선어 (창전)<br>
+      • 목 14:00 한국어 청취회화Ⅱ (하사)<br>
+      <span style="color:#e74c3c">⚠️ Ruth Videtta 제외</span>
+    </p>
+  </div>
+</div>
+
+<!-- MONTHLY -->
+<div id="monthly" class="section">
+  <div class="card">
+    <div class="cal-nav">
+      <button onclick="changeMonth(-1)">◀ 이전</button>
+      <h3 id="calTitle">--</h3>
+      <button onclick="changeMonth(1)">다음 ▶</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div style="margin-top:12px;font-size:12px;color:#888;line-height:1.8">
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;background:#5b7cfa;border-radius:50%"></span> Zoom</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;background:#9b59b6;border-radius:50%"></span> Zoom</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;background:#e84393;border-radius:50%"></span> Zoom</span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#e74c3c;border-radius:50%"></span> 오늘</span>
+    </div>
+  </div>
+</div>
+
+<!-- KIMI -->
+<div id="kimi" class="section">
+  <div class="card">
+    <h2>🤖 AI 일정 수정</h2>
+    <div id="kimiChat" style="background:#f8f8f8;border-radius:8px;padding:12px;margin-bottom:12px;max-height:300px;overflow-y:auto;font-size:13px;line-height:1.6">
+      <div style="color:#888;text-align:center;padding:20px">일정을 자연어로 말하거나 사진을 올려보세요</div>
+    </div>
+    <textarea id="kimiPrompt" placeholder="예: 내일 오후 3시 병원 예약 추가" style="width:100%;min-height:80px;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:14px;margin-top:8px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" onclick="sendKimiChat()" style="flex:1">보내기</button>
+      <button class="btn btn-green" onclick="startKimiVoice()" style="flex:1">🎤 음성</button>
+      <button class="btn btn-gray" onclick="document.getElementById('kimiImageInput').click()" style="flex:1">📷 사진</button>
+    </div>
+    <input type="file" id="kimiImageInput" accept="image/*" style="display:none" onchange="handleKimiImage(this)">
+    <div id="kimiResult" style="margin-top:12px;display:none">
+      <h3 style="font-size:14px;margin-bottom:8px">📋 결과 미리보기</h3>
+      <div id="kimiResultDesc" style="font-size:13px;margin-bottom:8px;padding:8px;background:#e8f5e9;border-radius:6px;color:#2e7d32"></div>
+      <pre id="kimiResultPreview" style="background:#f5f5f5;padding:12px;border-radius:8px;font-size:12px;overflow-x:auto;white-space:pre-wrap;display:none"></pre>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-green" onclick="applyKimiResult()" style="flex:1">✅ 적용하기</button>
+        <button class="btn btn-gray" onclick="cancelKimiResult()" style="flex:1">❌ 취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>➕ 수동으로 일정 추가</h2>
+    <div class="form">
+      <label>이름</label><input type="text" id="kimiInName" placeholder="예: 친구 만남, 병원">
+      <div class="edit-form">
+        <div class="form-row">
+          <div><label>날짜</label><input type="date" id="kimiInDate"></div>
+          <div>
+            <label>요일 (반복)</label>
+            <select id="kimiInDay">
+              <option value="">반복 없음</option>
+              <option value="1">월요일</option>
+              <option value="2">화요일</option>
+              <option value="3">수요일</option>
+              <option value="4">목요일</option>
+              <option value="5">금요일</option>
+              <option value="6">토요일</option>
+              <option value="0">일요일</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div><label>시작 시간</label><input type="time" id="kimiInStart" value="10:00"></div>
+          <div><label>종료 시간</label><input type="time" id="kimiInEnd" value="11:00"></div>
+        </div>
+      </div>
+      <label>유형</label>
+      <select id="kimiInType">
+        <option value="personal">개인 일정</option>
+        <option value="zoom">Zoom 수업</option>
+        <option value="offline">오프라인 수업</option>
+        <option value="other">기타</option>
+      </select>
+      <label>장소 / 메모</label><input type="text" id="kimiInLoc" placeholder="예: 스타벅스, Zoom 링크">
+      <label>종료 날짜 (범위 일정)</label><input type="date" id="kimiInEndDate" placeholder="선택 시 범위 일정">
+      <button class="btn" onclick="addScheduleFromKimi()">추가하기</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 현재 일정 요약</h2>
+    <div id="kimiSummary" style="font-size:12px;color:#555;line-height:1.8;white-space:pre-wrap;background:#f8f8f8;padding:12px;border-radius:8px"></div>
+  </div>
+
+  <div class="card">
+    <h2>🔑 Kimi API 설정</h2>
+    <div class="form">
+      <label>Kimi API Key</label>
+      <input type="text" id="kimiApiKey" placeholder="sk-...">
+      <button class="btn btn-green" onclick="saveKimiApiKey()">저장</button>
+    </div>
+    <p style="font-size:12px;color:#888;margin-top:8px">키는 이 기기의 브라우저에만 저장됩니다. 다른 사람과 공유하지 마세요.</p>
+  </div>
+</div>
+
+<!-- MANAGE -->
+<div id="manage" class="section">
+  <div id="connStatus"></div>
+  <div class="card">
+    <h2>⚙️ Supabase 연결</h2>
+    <div class="form">
+      <label>Supabase Project URL</label>
+      <input type="text" id="sbUrl" placeholder="https://xxxxx.supabase.co">
+      <label>Supabase Anon Key</label>
+      <input type="text" id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIs...">
+      <button class="btn btn-green" onclick="saveSupabase()">연결하기</button>
+      <button class="btn btn-gray" onclick="clearSupabase()" style="margin-top:8px">로컬 모드로 전환</button>
+    </div>
+    <p style="font-size:12px;color:#888;margin-top:12px">
+      Supabase 계정이 없으면 <a href="https://supabase.com" target="_blank">supabase.com</a>에서 무료로 가입하세요.<br>
+      Project Settings → API 에서 URL과 Anon Key를 복사해 붙여넣으세요.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>➕ 수동으로 일정 추가</h2>
+    <div class="form">
+      <label>이름</label><input type="text" id="inName" placeholder="예: 친구 만남, 병원">
+      <div class="edit-form">
+        <div class="form-row">
+          <div>
+            <label>날짜</label>
+            <input type="date" id="inDate">
+          </div>
+          <div>
+            <label>요일 (반복)</label>
+            <select id="inDay">
+              <option value="">반복 없음</option>
+              <option value="1">월요일</option>
+              <option value="2">화요일</option>
+              <option value="3">수요일</option>
+              <option value="4">목요일</option>
+              <option value="5">금요일</option>
+              <option value="6">토요일</option>
+              <option value="0">일요일</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>시작 시간</label>
+            <input type="time" id="inStart" value="10:00">
+          </div>
+          <div>
+            <label>종료 시간</label>
+            <input type="time" id="inEnd" value="11:00">
+          </div>
+        </div>
+      </div>
+      <label>유형</label>
+      <select id="inType">
+        <option value="personal">개인 일정</option>
+        <option value="zoom">Zoom 수업</option>
+        <option value="offline">오프라인 수업</option>
+        <option value="other">기타</option>
+      </select>
+      <label>장소 / 메모</label><input type="text" id="inLoc" placeholder="예: 스타벅스, Zoom 링크">
+      <label>종료 날짜 (범위 일정)</label><input type="date" id="inEndDate" placeholder="선택 시 범위 일정">
+      <button class="btn" onclick="addSchedule()">추가하기</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 저장된 일정</h2>
+    <div id="savedList"></div>
+  </div>
+
+  <div class="card" style="background:#fff5f5;border:2px solid #e74c3c">
+    <h2>⚠️ 데이터 초기화</h2>
+    <p style="font-size:13px;color:#888">
+      일정이 꼬이거나 이상하게 보일 때, 모든 데이터를 초기화하고 기본 일정(Zoom 수업 + 오프라인 수업 + 학기 일정)만 다시 로드합니다.
+    </p>
+    <button class="btn btn-danger" onclick="resetAllData()">모든 데이터 초기화</button>
+  </div>
+</div>
+<div class="bottom">
+  <button class="active" onclick="showTab('today',this); return false;"><span class="icon">📋</span>오늘</button>
+  <button onclick="showTab('weekly',this); return false;"><span class="icon">📅</span>주간</button>
+  <button onclick="showTab('monthly',this); return false;"><span class="icon">📆</span>월간</button>
+  <button onclick="showTab('kimi',this); return false;"><span class="icon">🤖</span>Kimi</button>
+  <button onclick="showTab('manage',this); return false;"><span class="icon">⚙️</span>관리</button>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <h3>📋 일정 상세 <button class="modal-close" onclick="closeEventDetail()">✕</button></h3>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>✏️ 일정 수정 <button class="modal-close" onclick="closeModal()">✕</button></h3>
+    <div class="form" id="editForm"></div>
+  </div>
+</div>
+
+<!-- SUPABASE CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+// =========================
+// GLOBAL STATE
+// =========================
+var currentTz = localStorage.getItem('pb_tz') || 'cn';
+var sb = null;
+var sbUrl = localStorage.getItem('sb_url') || 'https://ghznrcgwinxzev.supabase.co';
+var sbKey = localStorage.getItem('sb_key') || 'sb_publishable_BNXoo2QCblkraUfl2i7VtA_Tddj5Utm';
+var schedules = [];
+var weeklyOffset = 0;
+var calYear = new Date().getFullYear();
+var calMonth = new Date().getMonth();
+var voiceParsed = null;
+var recognition = null;
+
+const TYPE_COLORS = {
+  personal: '#888',
+  zoom: '#5b7cfa',
+  offline: '#D4736A',
+  other: '#9b59b6'
+};
+
+const TYPE_LABELS = {
+  personal: '개인',
+  zoom: 'Zoom',
+  offline: '오프라인',
+  other: '기타'
+};
+
+// =========================
+// INIT
+// =========================
+window.addEventListener('DOMContentLoaded', function() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW error', e); });
+  }
+  if (!localStorage.getItem('sb_url')) localStorage.setItem('sb_url', sbUrl);
+  if (!localStorage.getItem('sb_key')) localStorage.setItem('sb_key', sbKey);
+  var sbUrlInput = document.getElementById('sbUrl');
+  var sbKeyInput = document.getElementById('sbKey');
+  if (sbUrlInput) sbUrlInput.value = sbUrl;
+  if (sbKeyInput) sbKeyInput.value = sbKey;
+  initSupabase();
+  loadSchedules();
+  updateTodayHeader();
+  updateTzUI();
+  updateConnectionUI();
+  initVoice();
+  loadKimiApiKey();
+});
+
+// =========================
+// SUPABASE
+// =========================
+function initSupabase() {
+  try {
+    sb = supabase.createClient(sbUrl, sbKey);
+    sb.channel('schedules').on('postgres_changes', { event: '*', schema: 'public', table: 'schedules' }, function(payload) {
+      console.log('Realtime:', payload);
+      loadSchedules();
+    }).subscribe();
+  } catch(e) { sb = null; }
+}
+
+function saveSupabase() {
+  var u = document.getElementById('sbUrl').value.trim();
+  var k = document.getElementById('sbKey').value.trim();
+  if (!u || !k) { alert('URL과 Key를 모두 입력하세요.'); return; }
+  localStorage.setItem('sb_url', u);
+  localStorage.setItem('sb_key', k);
+  sbUrl = u; sbKey = k;
+  initSupabase();
+  updateConnectionUI();
+  syncToSupabase();
+  alert('Supabase에 연결되었습니다!');
+}
+
+function clearSupabase() {
+  localStorage.removeItem('sb_url');
+  localStorage.removeItem('sb_key');
+  sb = null; sbUrl = ''; sbKey = '';
+  updateConnectionUI();
+  alert('로컬 모드로 전환되었습니다. 핸드폰/랩탑 동기화는 Supabase 연결 시 가능합니다.');
+}
+
+function updateConnectionUI() {
+  var el = document.getElementById('connStatus');
+  if (!el) return;
+  if (sb) {
+    el.className = 'status-bar online';
+    el.innerHTML = '<span class="dot"></span> Supabase 연결됨 — 실시간 동기화 활성화';
+  } else if (sbUrl) {
+    el.className = 'status-bar offline';
+    el.innerHTML = '<span class="dot"></span> 연결 실패 — 로컬 모드로 동작 중';
+  } else {
+    el.className = 'status-bar';
+    el.innerHTML = '<span class="dot"></span> 로컬 모드 — Supabase 연결하면 동기화됩니다';
+  }
+}
+
+// =========================
+// DATA
+// =========================
+function loadSchedules() {
+  var CURRENT_VERSION = '1.0';
+  var version = localStorage.getItem('pb_version');
+
+  var defaults = [
+    { id: 'def1', name: 'Ingrid James', day: '1', start: '16:30', end: '17:30', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() },
+    { id: 'def2', name: 'Audrey', day: '1', start: '17:30', end: '18:30', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() },
+    { id: 'def3', name: 'Veronica', day: '4', start: '18:00', end: '19:00', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() },
+    { id: 'def4', name: '비즈니스 조선어', day: '1', start: '08:50', end: '09:50', type: 'offline', loc: '창전', created_at: new Date().toISOString() },
+    { id: 'def5', name: '비즈니스 조선어', day: '3', start: '10:40', end: '11:40', type: 'offline', loc: '창전', created_at: new Date().toISOString() },
+    { id: 'def6', name: '한국어 청취회화Ⅱ', day: '4', start: '14:00', end: '15:00', type: 'offline', loc: '하사', created_at: new Date().toISOString() },
+    { id: 'sem1', name: '🎓 개강', date: '2026-09-07', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem2', name: '🎉 개학식', date: '2026-09-08', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem3', name: '🏃 운동회', date: '2026-10-28', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem4', name: '🏃 운동회', date: '2026-10-29', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem5', name: '🏃 운동회', date: '2026-10-30', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem6', name: '📝 기말 시험', date: '2027-01-04', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem7', name: '📝 기말 시험', date: '2027-01-15', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
+    { id: 'sem8', name: '❄️ 겨울 방학', date: '2027-01-18', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() }
+  ];
+
+  var stored = JSON.parse(localStorage.getItem('pb_schedules') || '[]');
+
+  // 버전이 바뀌면(또는 최초) 기존 기본 일정을 깨끗이 제거하고 새 기본 일정을 로드
+  if (version !== CURRENT_VERSION) {
+    localStorage.setItem('pb_version', CURRENT_VERSION);
+    var defaultIds = defaults.map(function(d) { return d.id; });
+    stored = stored.filter(function(s) {
+      return !defaultIds.includes(s.id);
+    });
+  }
+
+  var storedIds = stored.map(function(s) { return s.id; });
+  defaults.forEach(function(d) {
+    if (!storedIds.includes(d.id)) stored.push(d);
+  });
+  schedules = stored;
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  loadSaved();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+async function syncToSupabase() {
+  if (!sb) return;
+  try {
+    for (var i = 0; i < schedules.length; i++) {
+      var s = schedules[i];
+      if (s.id.startsWith('def')) continue;
+      await sb.from('schedules').upsert({ id: s.id, name: s.name, day: s.day, date: s.date || null, start: s.start, end: s.end, type: s.type, loc: s.loc, created_at: s.created_at });
+    }
+  } catch(e) { console.log('sync error', e); }
+}
+
+// =========================
+// TABS
+// =========================
+function showTab(id, el) {
+  if (event && event.preventDefault) event.preventDefault();
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.tabs button').forEach(function(a) { a.classList.remove('active'); });
+  document.querySelectorAll('.bottom button').forEach(function(a) { a.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'monthly') renderCalendar();
+  if (id === 'weekly') renderWeekly();
+  if (id === 'today') renderToday();
+  if (id === 'kimi') renderKimiSummary();
+}
+
+// =========================
+// TODAY
+// =========================
+const SEMESTER_START = new Date('2026-09-07');
+const TOTAL_WEEKS = 16;
+
+const HOLIDAYS = {
+  '2026-01-01': { name: '신정', country: '🇰🇷 한국' },
+  '2026-02-17': { name: '설날', country: '🇰🇷 한국' },
+  '2026-02-18': { name: '설날 연휴', country: '🇰🇷 한국' },
+  '2026-02-19': { name: '설날 연휴', country: '🇰🇷 한국' },
+  '2026-03-01': { name: '삼일절', country: '🇰🇷 한국' },
+  '2026-05-05': { name: '어린이날', country: '🇰🇷 한국' },
+  '2026-06-06': { name: '현충일', country: '🇰🇷 한국' },
+  '2026-08-15': { name: '광복절', country: '🇰🇷 한국' },
+  '2026-10-03': { name: '개천절', country: '🇰🇷 한국' },
+  '2026-10-09': { name: '한글날', country: '🇰🇷 한국' },
+  '2026-12-25': { name: '성탄절', country: '🇰🇷 한국' },
+  '2026-01-01': { name: '元旦', country: '🇨🇳 중국' },
+  '2026-01-28': { name: '春节', country: '🇨🇳 중국' },
+  '2026-01-29': { name: '春节', country: '🇨🇳 중국' },
+  '2026-01-30': { name: '春节', country: '🇨🇳 중국' },
+  '2026-04-04': { name: '清明节', country: '🇨🇳 중국' },
+  '2026-04-05': { name: '清明节', country: '🇨🇳 중국' },
+  '2026-04-06': { name: '清明节', country: '🇨🇳 중국' },
+  '2026-05-01': { name: '劳动节', country: '🇨🇳 중국' },
+  '2026-05-02': { name: '劳动节', country: '🇨🇳 중국' },
+  '2026-05-03': { name: '劳动节', country: '🇨🇳 중국' },
+  '2026-05-04': { name: '劳动节', country: '🇨🇳 중국' },
+  '2026-05-05': { name: '劳动节', country: '🇨🇳 중국' },
+  '2026-06-19': { name: '端午节', country: '🇨🇳 중국' },
+  '2026-06-20': { name: '端午节', country: '🇨🇳 중국' },
+  '2026-06-21': { name: '端午节', country: '🇨🇳 중국' },
+  '2026-09-03': { name: '胜利日', country: '🇨🇳 중국' },
+  '2026-09-04': { name: '胜利日', country: '🇨🇳 중국' },
+  '2026-09-05': { name: '胜利日', country: '🇨🇳 중국' },
+  '2026-10-01': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-02': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-03': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-04': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-05': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-06': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-07': { name: '国庆节', country: '🇨🇳 중국' },
+  '2026-10-08': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-01-01': { name: '신정', country: '🇰🇷 한국' },
+  '2027-02-06': { name: '설날', country: '🇰🇷 한국' },
+  '2027-02-07': { name: '설날 연휴', country: '🇰🇷 한국' },
+  '2027-02-08': { name: '설날 연휴', country: '🇰🇷 한국' },
+  '2027-03-01': { name: '삼일절', country: '🇰🇷 한국' },
+  '2027-05-05': { name: '어린이날', country: '🇰🇷 한국' },
+  '2027-06-06': { name: '현충일', country: '🇰🇷 한국' },
+  '2027-08-15': { name: '광복절', country: '🇰🇷 한국' },
+  '2027-10-03': { name: '개천절', country: '🇰🇷 한국' },
+  '2027-10-09': { name: '한글날', country: '🇰🇷 한국' },
+  '2027-12-25': { name: '성탄절', country: '🇰🇷 한국' },
+  '2027-01-01': { name: '元旦', country: '🇨🇳 중국' },
+  '2027-02-17': { name: '春节', country: '🇨🇳 중국' },
+  '2027-02-18': { name: '春节', country: '🇨🇳 중국' },
+  '2027-02-19': { name: '春节', country: '🇨🇳 중국' },
+  '2027-04-03': { name: '清明节', country: '🇨🇳 중국' },
+  '2027-04-04': { name: '清明节', country: '🇨🇳 중국' },
+  '2027-04-05': { name: '清明节', country: '🇨🇳 중국' },
+  '2027-05-01': { name: '劳动节', country: '🇨🇳 중국' },
+  '2027-05-02': { name: '劳动节', country: '🇨🇳 중국' },
+  '2027-05-03': { name: '劳动节', country: '🇨🇳 중국' },
+  '2027-05-04': { name: '劳动节', country: '🇨🇳 중국' },
+  '2027-05-05': { name: '劳动节', country: '🇨🇳 중국' },
+  '2027-06-09': { name: '端午节', country: '🇨🇳 중국' },
+  '2027-06-10': { name: '端午节', country: '🇨🇳 중국' },
+  '2027-06-11': { name: '端午节', country: '🇨🇳 중국' },
+  '2027-10-01': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-02': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-03': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-04': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-05': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-06': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-07': { name: '国庆节', country: '🇨🇳 중국' },
+  '2027-10-08': { name: '国庆节', country: '🇨🇳 중국' }
+};
+
+function getHoliday(dateStr) {
+  return HOLIDAYS[dateStr] || null;
+}
+
+function getSemesterWeek(date) {
+  if (date < SEMESTER_START) return 0;
+  var diffMs = date - SEMESTER_START;
+  var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return Math.floor(diffDays / 7) + 1;
+}
+
+function updateTodayHeader() {
+  var now = new Date();
+  var days = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+  document.getElementById('todayDay').textContent = days[now.getDay()];
+  document.getElementById('todayDate').textContent = now.getFullYear() + '년 ' + (now.getMonth()+1) + '월 ' + now.getDate() + '일';
+}
+
+function setTimezone(tz) {
+  currentTz = tz;
+  localStorage.setItem('pb_tz', tz);
+  updateTzUI();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+  loadSaved();
+}
+
+function updateTzUI() {
+  var btn = document.getElementById('tzBtn');
+  if (btn) btn.textContent = currentTz === 'cn' ? '🇨🇳 중국' : '🇰🇷 한국';
+}
+
+function toggleTimezone() {
+  setTimezone(currentTz === 'cn' ? 'kr' : 'cn');
+}
+
+function formatTimeWithTz(timeStr) {
+  if (!timeStr || currentTz === 'cn') return timeStr;
+  var parts = timeStr.split(':');
+  var h = parseInt(parts[0]) + 1;
+  var m = parts[1];
+  if (h >= 24) h -= 24;
+  return String(h).padStart(2, '0') + ':' + m;
+}
+
+function getWeeklyHours() {
+  if (currentTz === 'kr') {
+    return ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'];
+  }
+  return ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
+}
+
+function getFilterHour(displayHour) {
+  if (currentTz === 'kr') {
+    var h = parseInt(displayHour.split(':')[0]) - 1;
+    if (h < 0) h += 24;
+    return String(h).padStart(2, '0');
+  }
+  return displayHour.split(':')[0];
+}
+
+function renderToday() {
+  var now = new Date();
+  var todayEvents = getTodayEvents(now);
+  var box = document.getElementById('todayCard');
+  var html = '';
+  var dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  var holiday = getHoliday(dateStr);
+  if (holiday) {
+    html += '<div class="class-box" style="background:#e74c3c">' +
+      '<div class="title">🎌 ' + holiday.name + '</div>' +
+      '<div class="meta">' + holiday.country + ' 공휴일</div>' +
+      '</div>';
+  }
+  if (todayEvents.length > 0) {
+    todayEvents.sort(function(a,b) { return a.start.localeCompare(b.start); });
+    todayEvents.forEach(function(ev) {
+      var color = TYPE_COLORS[ev.type] || '#888';
+      html += '<div class="class-box" style="background:' + color + '">' +
+        '<div class="title">' + ev.name + '</div>' +
+        '<div class="meta">' + (TYPE_LABELS[ev.type] || '기타') + (ev.loc ? ' · ' + ev.loc : '') + '</div>' +
+        '<div class="time">🕐 ' + formatTimeWithTz(ev.start) + ' ~ ' + formatTimeWithTz(ev.end) + '</div>' +
+        '</div>';
+    });
+  }
+  // 다음 일정 10개 추가
+  var upcoming = getUpcomingEvents(now, 10);
+  if (upcoming.length > 0) {
+    if (todayEvents.length === 0) {
+      html += '<div class="empty" style="padding:16px;font-size:13px;color:#888">☕ 오늘은 일정이 없습니다</div>';
+    }
+    html += '<div style="margin-top:16px;padding-top:12px;border-top:2px dashed #ddd"><div style="font-size:13px;color:#888;margin-bottom:10px;font-weight:bold">📅 다음 일정</div>';
+    upcoming.forEach(function(ev) {
+      var color = TYPE_COLORS[ev.type] || '#888';
+      var when = ev.date ? ev.date : ['일','월','화','수','목','금','토'][ev.day] + '요일';
+      html += '<div class="class-box" style="background:' + color + ';opacity:0.92">' +
+        '<div class="title">' + ev.name + '</div>' +
+        '<div class="meta">' + (TYPE_LABELS[ev.type] || '기타') + (ev.loc ? ' · ' + ev.loc : '') + ' · ' + when + '</div>' +
+        '<div class="time">🕐 ' + formatTimeWithTz(ev.start) + ' ~ ' + formatTimeWithTz(ev.end) + '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+  if (html === '') {
+    html = '<div class="empty"><div class="emoji">☕</div><div>일정이 없습니다</div><div style="font-size:13px;color:#aaa;margin-top:6px">관리 탭에서 추가하거나 음성으로 말해보세요</div></div>';
+  }
+  box.innerHTML = html;
+}
+
+function getUpcomingEvents(fromDate, limit) {
+  var result = [];
+  var checked = new Set();
+  // 다음 60일간 검색
+  for (var offset = 0; offset < 60 && result.length < limit; offset++) {
+    var d = new Date(fromDate);
+    d.setDate(d.getDate() + offset);
+    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (checked.has(ds)) continue;
+    checked.add(ds);
+    var events = getTodayEvents(d);
+    events.forEach(function(ev) {
+      if (offset === 0) return; // 오늘은 이미 위에서 표시
+      var key = ev.id + '_' + ds;
+      if (!checked.has(key)) {
+        checked.add(key);
+        result.push(Object.assign({}, ev, { _displayDate: ds }));
+      }
+    });
+  }
+  return result;
+}
+
+function getTodayEvents(date) {
+  var dow = date.getDay();
+  var y = date.getFullYear(), m = date.getMonth()+1, d = date.getDate();
+  var dateStr = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  var weekNum = getSemesterWeek(date);
+
+  return schedules.filter(function(s) {
+    if (s.date) return s.date === dateStr;
+    if (s.day !== undefined && s.day !== '') {
+      if (String(s.day) !== String(dow)) return false;
+      // 오프라인 수업은 학기 중(1~16주차)만 표시
+      if (s.type === 'offline') {
+        return weekNum >= 1 && weekNum <= TOTAL_WEEKS;
+      }
+      return true;
+    }
+    return false;
+  }).map(function(s) {
+    // 오프라인 수업은 주차 표시
+    if (s.type === 'offline' && weekNum >= 1 && weekNum <= TOTAL_WEEKS) {
+      return Object.assign({}, s, { name: s.name + ' (' + weekNum + '주차)' });
+    }
+    return s;
+  });
+}
+// =========================
+// WEEKLY
+// =========================
+function renderWeekly() {
+  var hours = getWeeklyHours();
+  var days = ['일','월','화','수','목','금','토'];
+  var html = '<tr><th class="time-col">시간</th>';
+  days.forEach(function(d) { html += '<th>' + d + '</th>'; });
+  html += '</tr>';
+
+  // 현재 주의 월요일 날짜 계산
+  var now = new Date();
+  var monday = new Date(now);
+  monday.setDate(monday.getDate() - monday.getDay() + 1);
+
+  hours.forEach(function(h) {
+    html += '<tr><td class="time-label">' + h + '</td>';
+    for (var dow = 0; dow < 7; dow++) {
+      var cellDate = new Date(monday);
+      cellDate.setDate(monday.getDate() + dow - 1);
+
+      var items = getTodayEvents(cellDate).filter(function(s) {
+        return s.start && s.start.startsWith(getFilterHour(h));
+      });
+      var cellDateStr = cellDate.getFullYear() + '-' + String(cellDate.getMonth()+1).padStart(2,'0') + '-' + String(cellDate.getDate()).padStart(2,'0');
+      if (items.length === 0) {
+        html += '<td onclick="openAddOnDate(\'' + cellDateStr + '\')" style="cursor:pointer">';
+      } else {
+        html += '<td>';
+      }
+      items.forEach(function(it) {
+        var c = TYPE_COLORS[it.type] || '#888';
+        html += '<div class="cell-item" style="background:' + c + '" onclick="openEdit(\'' + it.id + '\')">' +
+          '<div class="n">' + it.name + '</div><div class="t">' + formatTimeWithTz(it.start) + '~' + formatTimeWithTz(it.end) + '</div></div>';
+      });
+      html += '</td>';
+    }
+    html += '</tr>';
+  });
+  document.getElementById('weeklyTable').innerHTML = html;
+}
+
+// =========================
+// MONTHLY
+// =========================
+function renderCalendar() {
+  var grid = document.getElementById('calGrid');
+  var title = document.getElementById('calTitle');
+  title.textContent = calYear + '년 ' + (calMonth + 1) + '월';
+  var html = '';
+  var weekdays = ['월','화','수','목','금','토','일'];
+  weekdays.forEach(function(w) { html += '<div class="cal-header">' + w + '</div>'; });
+  var firstDay = (new Date(calYear, calMonth, 1).getDay() + 6) % 7; // Monday start
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  var now = new Date();
+  var isCurrentMonth = (now.getFullYear() === calYear && now.getMonth() === calMonth);
+  var prevDays = new Date(calYear, calMonth, 0).getDate();
+  for (var i = 0; i < firstDay; i++) {
+    html += '<div class="cal-day other"><span>' + (prevDays - firstDay + i + 1) + '</span></div>';
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var cls = 'cal-day';
+    if (isCurrentMonth && d === now.getDate()) cls += ' today';
+    var dateObj = new Date(calYear, calMonth, d);
+    var dateStr = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var events = getTodayEvents(dateObj);
+    var holiday = getHoliday(dateStr);
+    var dots = '';
+    events.forEach(function(ev) {
+      var c = TYPE_COLORS[ev.type] || '#888';
+      dots += '<span class="multi-dot" style="background:' + c + '"></span>';
+    });
+    if (holiday) dots += '<span class="multi-dot" style="background:#e74c3c"></span>';
+    html += '<div class="' + cls + '" onclick="onCalDayClick(' + calYear + ',' + calMonth + ',' + d + ')">' +
+      '<span class="day-num">' + d + '</span>' +
+      (holiday ? '<span style="font-size:9px;color:#e74c3c;font-weight:bold">' + holiday.name + '</span>' : '') +
+      '<div class="multi">' + dots + '</div></div>';
+  }
+  var totalCells = firstDay + daysInMonth;
+  var remaining = (7 - (totalCells % 7)) % 7;
+  for (var i = 1; i <= remaining; i++) {
+    html += '<div class="cal-day other"><span>' + i + '</span></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function changeWeek(delta) {
+  weeklyOffset += delta;
+  renderWeekly();
+}
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function showEventDetail(id) {
+  var s = schedules.find(function(x) { return x.id === id; });
+  if (!s) return;
+  var when = s.date ? s.date : (s.day !== undefined && s.day !== '' ? ['일','월','화','수','목','금','토'][s.day] + '요일' : '');
+  var html = '<div style="text-align:center;padding:20px">' +
+    '<div style="font-size:18px;font-weight:bold;margin-bottom:12px">' + s.name + '</div>' +
+    '<div style="font-size:14px;color:#888;margin-bottom:4px">' + when + '</div>' +
+    '<div style="font-size:14px;color:#888;margin-bottom:4px">' + formatTimeWithTz(s.start) + ' ~ ' + formatTimeWithTz(s.end) + '</div>' +
+    '<div style="font-size:14px;color:#888;margin-bottom:16px">' + (TYPE_LABELS[s.type] || '기타') + (s.loc ? ' · ' + s.loc : '') + '</div>' +
+    '<button class="btn" onclick="closeEventDetail(); openEdit(\'' + s.id + '\')" style="max-width:200px;margin:0 auto">✏️ 수정</button>' +
+    '</div>';
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function closeEventDetail() {
+  document.getElementById('detailModal').classList.remove('show');
+}
+
+function onCalDayClick(y, m, d) {
+  var date = new Date(y, m, d);
+  var events = getTodayEvents(date);
+  var dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  var holiday = getHoliday(dateStr);
+  if (events.length === 0 && !holiday) {
+    openAddOnDate(dateStr);
+    return;
+  }
+  var html = '<div style="text-align:left;padding:12px">';
+  if (holiday) {
+    html += '<div style="padding:10px;border-bottom:1px solid #eee;background:#fff3cd;border-radius:8px;margin-bottom:8px">' +
+      '<div style="font-weight:bold;color:#856404">🎌 ' + holiday.name + '</div>' +
+      '<div style="font-size:12px;color:#856404">' + holiday.country + ' 공휴일</div></div>';
+  }
+  events.forEach(function(ev) {
+    html += '<div style="padding:10px;border-bottom:1px solid #eee">' +
+      '<div style="font-weight:bold">' + ev.name + '</div>' +
+      '<div style="font-size:13px;color:#888">' + formatTimeWithTz(ev.start) + '~' + formatTimeWithTz(ev.end) + ' · ' + (TYPE_LABELS[ev.type] || '기타') + '</div>' +
+      '<button class="btn" onclick="closeEventDetail(); openEdit(\'' + ev.id + '\')" style="margin-top:8px;padding:8px 12px;font-size:13px">✏️ 수정</button>' +
+      '</div>';
+  });
+  html += '<div style="padding:10px;text-align:center"><button class="btn btn-green" onclick="closeEventDetail(); openAddOnDate(\'' + dateStr + '\')" style="padding:8px 16px;font-size:13px">➕ 이 날짜에 일정 추가</button></div>';
+  html += '</div>';
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function showDayEvents(y, m, d) {
+  onCalDayClick(y, m, d);
+}
+
+function openAddOnDate(dateStr) {
+  var form = document.getElementById('editForm');
+  form.innerHTML =
+    '<input type="hidden" id="editId" value="">' +
+    '<label>이름</label><input type="text" id="editName" placeholder="예: 친구 만남, 병원">' +
+    '<label>날짜</label><input type="date" id="editDate" value="' + dateStr + '">' +
+    '<label>종료 날짜 (범위 일정)</label><input type="date" id="editEndDate" placeholder="선택 시 범위 일정">' +
+    '<label>요일 (반복)</label>' +
+    '<select id="editDay"><option value="">반복 없음</option>' +
+    '<option value="1">월</option><option value="2">화</option><option value="3">수</option>' +
+    '<option value="4">목</option><option value="5">금</option><option value="6">토</option><option value="0">일</option></select>' +
+    '<div class="edit-form"><div class="form-row"><div><label>시작</label><input type="time" id="editStart" value="10:00"></div>' +
+    '<div><label>종료</label><input type="time" id="editEnd" value="11:00"></div></div></div>' +
+    '<label>유형</label><select id="editType">' +
+    '<option value="personal">개인</option><option value="zoom">Zoom</option>' +
+    '<option value="offline">오프라인</option><option value="other">기타</option></select>' +
+    '<label>장소/메모</label><input type="text" id="editLoc" placeholder="예: 스타벅스, Zoom 링크">' +
+    '<button class="btn" onclick="saveAddFromDate()">추가하기</button>';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function saveAddFromDate() {
+  var name = document.getElementById('editName').value.trim();
+  var date = document.getElementById('editDate').value;
+  var endDate = document.getElementById('editEndDate').value;
+  var day = document.getElementById('editDay').value;
+  var start = document.getElementById('editStart').value;
+  var end = document.getElementById('editEnd').value;
+  var type = document.getElementById('editType').value;
+  var loc = document.getElementById('editLoc').value.trim();
+  if (!name || !start || !end) { alert('이름과 시간을 입력해주세요.'); return; }
+  
+  if (endDate && endDate > date) {
+    // Range schedule: add for each day
+    var cur = new Date(date);
+    var last = new Date(endDate);
+    var count = 0;
+    while (cur <= last) {
+      var ds = cur.getFullYear() + '-' + String(cur.getMonth()+1).padStart(2,'0') + '-' + String(cur.getDate()).padStart(2,'0');
+      var item = { id: 'sch_' + Date.now() + '_' + count, name: name, date: ds, day: '', start: start, end: end, type: type, loc: loc, created_at: new Date().toISOString() };
+      schedules.push(item);
+      count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    alert(count + '일간의 일정을 추가했습니다!');
+  } else {
+    var item = { id: 'sch_' + Date.now(), name: name, date: date, day: day, start: start, end: end, type: type, loc: loc, created_at: new Date().toISOString() };
+    schedules.push(item);
+    alert('추가 완료!');
+  }
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  if (sb) syncToSupabase();
+  closeModal();
+  loadSaved();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+// =========================
+// MANAGE CRUD
+// =========================
+function addSchedule() {
+  var name = document.getElementById('inName').value.trim();
+  var date = document.getElementById('inDate').value;
+  var endDate = document.getElementById('inEndDate').value;
+  var day = document.getElementById('inDay').value;
+  var start = document.getElementById('inStart').value;
+  var end = document.getElementById('inEnd').value;
+  var type = document.getElementById('inType').value;
+  var loc = document.getElementById('inLoc').value.trim();
+  if (!name || !start || !end) { alert('이름과 시간을 입력해주세요.'); return; }
+
+  if (endDate && endDate > date) {
+    var cur = new Date(date);
+    var last = new Date(endDate);
+    var count = 0;
+    while (cur <= last) {
+      var ds = cur.getFullYear() + '-' + String(cur.getMonth()+1).padStart(2,'0') + '-' + String(cur.getDate()).padStart(2,'0');
+      var item = { id: 'sch_' + Date.now() + '_' + count, name: name, date: ds, day: '', start: start, end: end, type: type, loc: loc, created_at: new Date().toISOString() };
+      schedules.push(item);
+      count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    alert(count + '일간의 일정을 추가했습니다!');
+  } else {
+    var item = {
+      id: 'sch_' + Date.now(),
+      name: name,
+      date: date || '',
+      day: day,
+      start: start,
+      end: end,
+      type: type,
+      loc: loc,
+      created_at: new Date().toISOString()
+    };
+    schedules.push(item);
+    alert('추가 완료!');
+  }
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  if (sb) syncToSupabase();
+  document.getElementById('inName').value = '';
+  document.getElementById('inLoc').value = '';
+  document.getElementById('inDate').value = '';
+  document.getElementById('inEndDate').value = '';
+  loadSaved();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+function loadSaved() {
+  var box = document.getElementById('savedList');
+  if (schedules.length === 0) {
+    box.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:14px">저장된 일정이 없습니다.</div>';
+    return;
+  }
+  var days = {0:'일',1:'월',2:'화',3:'수',4:'목',5:'금',6:'토'};
+  var html = '';
+  schedules.forEach(function(s) {
+    var when = s.date ? s.date : (s.day !== undefined && s.day !== '' ? days[s.day] + '요일(반복)' : '미지정');
+    html += '<div class="saved-item">' +
+      '<div><div style="font-weight:bold">' + s.name + '</div>' +
+      '<div style="font-size:12px;color:#888">' + when + ' ' + formatTimeWithTz(s.start) + '~' + formatTimeWithTz(s.end) + ' · ' + (TYPE_LABELS[s.type] || '기타') + (s.loc ? ' · ' + s.loc : '') + '</div></div>' +
+      '<div><button onclick="openEdit(\'' + s.id + '\')">수정</button> <button onclick="delSchedule(\'' + s.id + '\')">삭제</button></div>' +
+      '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function delSchedule(id) {
+  if (!confirm('삭제할까요?')) return;
+  schedules = schedules.filter(function(x) { return x.id !== id; });
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  if (sb) sb.from('schedules').delete().eq('id', id).catch(function(e){});
+  loadSaved();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+function openEdit(id) {
+  var s = schedules.find(function(x) { return x.id === id; });
+  if (!s) return;
+  var form = document.getElementById('editForm');
+  form.innerHTML =
+    '<input type="hidden" id="editId" value="' + s.id + '">' +
+    '<label>이름</label><input type="text" id="editName" value="' + (s.name||'') + '">' +
+    '<label>날짜 (반복 없으면 비워두세요)</label><input type="date" id="editDate" value="' + (s.date||'') + '">' +
+    '<label>요일 (반복)</label>' +
+    '<select id="editDay"><option value="">반복 없음</option>' +
+    '<option value="1" ' + (s.day==='1'?'selected':'') + '>월</option>' +
+    '<option value="2" ' + (s.day==='2'?'selected':'') + '>화</option>' +
+    '<option value="3" ' + (s.day==='3'?'selected':'') + '>수</option>' +
+    '<option value="4" ' + (s.day==='4'?'selected':'') + '>목</option>' +
+    '<option value="5" ' + (s.day==='5'?'selected':'') + '>금</option>' +
+    '<option value="6" ' + (s.day==='6'?'selected':'') + '>토</option>' +
+    '<option value="0" ' + (s.day==='0'?'selected':'') + '>일</option></select>' +
+    '<div class="edit-form"><div class="form-row"><div><label>시작</label><input type="time" id="editStart" value="' + formatTimeWithTz(s.start||'') + '"></div>' +
+    '<div><label>종료</label><input type="time" id="editEnd" value="' + formatTimeWithTz(s.end||'') + '"></div></div></div>' +
+    '<label>유형</label><select id="editType">' +
+    '<option value="personal" ' + (s.type==='personal'?'selected':'') + '>개인</option>' +
+    '<option value="zoom" ' + (s.type==='zoom'?'selected':'') + '>Zoom</option>' +
+    '<option value="offline" ' + (s.type==='offline'?'selected':'') + '>오프라인</option>' +
+    '<option value="other" ' + (s.type==='other'?'selected':'') + '>기타</option></select>' +
+    '<label>장소/메모</label><input type="text" id="editLoc" value="' + (s.loc||'') + '">' +
+    '<button class="btn" onclick="saveEdit()">저장</button>' +
+    '<button class="btn btn-danger" onclick="delSchedule(document.getElementById(\'editId\').value);closeModal();" style="margin-top:8px">삭제</button>';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function saveEdit() {
+  var id = document.getElementById('editId').value;
+  var idx = schedules.findIndex(function(x) { return x.id === id; });
+  if (idx === -1) return;
+  schedules[idx] = {
+    id: id,
+    name: document.getElementById('editName').value,
+    date: document.getElementById('editDate').value,
+    day: document.getElementById('editDay').value,
+    start: document.getElementById('editStart').value,
+    end: document.getElementById('editEnd').value,
+    type: document.getElementById('editType').value,
+    loc: document.getElementById('editLoc').value,
+    created_at: schedules[idx].created_at
+  };
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  if (sb) sb.from('schedules').upsert(schedules[idx]).catch(function(e){});
+  closeModal();
+  loadSaved();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('show');
+}
+
+function resetAllData() {
+  if (!confirm('정말 모든 데이터를 초기화할까요?\n\n사용자가 추가한 일정도 모두 삭제됩니다.\n기본 일정(Zoom 수업 + 오프라인 수업 + 학기 일정)만 다시 로드됩니다.')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+// =========================
+// VOICE RECOGNITION
+// =========================
+function initVoice() {
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    document.getElementById('voiceBtn').disabled = true;
+    document.getElementById('voiceTranscript').textContent = '이 브라우저는 음성 인식을 지원하지 않습니다. Chrome을 사용하세요.';
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ko-KR';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = function() {
+    document.getElementById('voiceBtn').classList.add('listening');
+    document.getElementById('voiceTranscript').textContent = '듣는 중...';
+    document.getElementById('voiceResult').style.display = 'none';
+    voiceParsed = null;
+  };
+  recognition.onend = function() {
+    document.getElementById('voiceBtn').classList.remove('listening');
+  };
+  recognition.onresult = function(e) {
+    var transcript = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    document.getElementById('voiceTranscript').textContent = transcript;
+    if (e.results[e.results.length-1].isFinal) {
+      voiceParsed = parseVoiceCommand(transcript);
+      showVoiceResult(voiceParsed);
+    }
+  };
+  recognition.onerror = function(e) {
+    document.getElementById('voiceBtn').classList.remove('listening');
+    document.getElementById('voiceTranscript').textContent = '오류: ' + e.error;
+  };
+}
+
+function toggleVoice() {
+  if (!recognition) return;
+  if (document.getElementById('voiceBtn').classList.contains('listening')) {
+    recognition.stop();
+  } else {
+    try { recognition.start(); } catch(e) { recognition.stop(); setTimeout(function(){recognition.start();},200); }
+  }
+}
+
+// =========================
+// VOICE PARSER (Rule-based NLP)
+// =========================
+function parseVoiceCommand(text) {
+  text = text.replace(/[.,!?]/g, '');
+  var result = { action: null, name: null, date: null, day: null, start: null, end: null, type: 'personal', loc: '', original: text };
+
+  // Action detection
+  var addKeywords = ['추가','넣어','만들어','새로','등록','예약','생성','생성해','추가해','넣어줘'];
+  var editKeywords = ['변경','바꿔','수정','옮겨','바꾸','교체','바꿔줘','수정해','옮겨줘'];
+  var delKeywords = ['삭제','취소','없애','지워','빼','제거','삭제해','취소해'];
+  var queryKeywords = ['보여줘','알려줘','뭐 있어','일정','확인','뭐야','뭐해'];
+
+  if (addKeywords.some(function(k) { return text.includes(k); })) result.action = 'add';
+  else if (editKeywords.some(function(k) { return text.includes(k); })) result.action = 'edit';
+  else if (delKeywords.some(function(k) { return text.includes(k); })) result.action = 'delete';
+  else if (queryKeywords.some(function(k) { return text.includes(k); })) result.action = 'query';
+
+  // Date parsing
+  var now = new Date();
+  if (text.includes('오늘')) { result.date = formatDate(now); }
+  else if (text.includes('내일')) { var t = new Date(now); t.setDate(t.getDate()+1); result.date = formatDate(t); }
+  else if (text.includes('모레')) { var t = new Date(now); t.setDate(t.getDate()+2); result.date = formatDate(t); }
+  else if (text.includes('어제')) { var t = new Date(now); t.setDate(t.getDate()-1); result.date = formatDate(t); }
+  else {
+    var dowMap = {'일요일':0,'월요일':1,'화요일':2,'수요일':3,'목요일':4,'금요일':5,'토요일':6,
+                  '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6};
+    for (var k in dowMap) {
+      if (text.includes(k)) { result.day = String(dowMap[k]); break; }
+    }
+    // Next week
+    var nextWeekMatch = text.match(/다음\s*주\s*(월|화|수|목|금|토|일)/);
+    if (nextWeekMatch) {
+      var targetDow = {'월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':0}[nextWeekMatch[1]];
+      var d = new Date(now);
+      d.setDate(d.getDate() + (7 + targetDow - d.getDay()) % 7 + 7);
+      result.date = formatDate(d); result.day = '';
+    }
+    // Absolute date: N월 N일
+    var absMatch = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
+    if (absMatch) {
+      var m = parseInt(absMatch[1]), d = parseInt(absMatch[2]);
+      var y = now.getFullYear();
+      if (m < now.getMonth()+1) y++;
+      result.date = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      result.day = '';
+    }
+  }
+
+  // Time parsing
+  var ampmMatch = text.match(/(오전|오후)\s*(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?/);
+  if (ampmMatch) {
+    var h = parseInt(ampmMatch[2]);
+    var m = ampmMatch[3] ? parseInt(ampmMatch[3]) : 0;
+    if (ampmMatch[1] === '오후' && h !== 12) h += 12;
+    if (ampmMatch[1] === '오전' && h === 12) h = 0;
+    result.start = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    result.end = String(h+1).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  } else {
+    var timeMatch = text.match(/(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?/);
+    if (timeMatch) {
+      var h = parseInt(timeMatch[1]), m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+      result.start = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+      result.end = String(h+1).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+  }
+  // Duration override
+  var durMatch = text.match(/(\d{1,2})\s*시간/);
+  if (durMatch && result.start) {
+    var sh = parseInt(result.start.split(':')[0]);
+    var eh = sh + parseInt(durMatch[1]);
+    result.end = String(eh).padStart(2,'0') + ':' + result.start.split(':')[1];
+  }
+
+  // Name extraction ( heuristic: proper nouns or text between date/time and action )
+  if (result.action === 'delete' || result.action === 'edit') {
+    // Look for existing schedule name
+    for (var i = 0; i < schedules.length; i++) {
+      if (text.includes(schedules[i].name)) { result.name = schedules[i].name; result.targetId = schedules[i].id; break; }
+    }
+  }
+  if (!result.name) {
+    // Extract name between time and action keywords, or after action keywords
+    var nameCandidates = text.split(/추가|등록|예약|변경|수정|바꿔|삭제|취소/);
+    if (nameCandidates.length > 1) {
+      var candidate = nameCandidates[0].replace(/오늘|내일|모레|어제|오전|오후|시|분|월요일|화요일|수요일|목요일|금요일|토요일|일요일|\d+월|\d+일|\d+시/g, '').trim();
+      if (candidate && candidate.length > 1) result.name = candidate;
+    }
+  }
+
+  // Type detection
+  if (text.includes('줌') || text.includes('zoom') || text.includes('Zoom')) result.type = 'zoom';
+  else if (text.includes('오프라인') || text.includes('대학') || text.includes('학교')) result.type = 'offline';
+
+  return result;
+}
+
+function formatDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function showVoiceResult(parsed) {
+  var resDiv = document.getElementById('voiceResult');
+  var cmdDiv = document.getElementById('vCmd');
+  var detDiv = document.getElementById('vDetail');
+  var btn = document.getElementById('vConfirmBtn');
+
+  var actionNames = {add:'추가', edit:'변경', delete:'삭제/취소', query:'조회'};
+  if (!parsed.action) {
+    cmdDiv.textContent = '명령을 인식하지 못했습니다';
+    detDiv.innerHTML = '다시 시도해보세요.<br>"내일 오후 3시 수업 추가" 처럼 말해보세요.';
+    btn.style.display = 'none';
+    resDiv.style.display = 'block';
+    return;
+  }
+
+  cmdDiv.textContent = (actionNames[parsed.action] || parsed.action);
+  var detail = '';
+  if (parsed.name) detail += '<b>이름:</b> ' + parsed.name + '<br>';
+  if (parsed.date) detail += '<b>날짜:</b> ' + parsed.date + '<br>';
+  if (parsed.day !== null && parsed.day !== '') detail += '<b>반복:</b> ' + ['일','월','화','수','목','금','토'][parsed.day] + '요일<br>';
+  if (parsed.start) detail += '<b>시간:</b> ' + parsed.start + (parsed.end ? ' ~ ' + parsed.end : '') + '<br>';
+  if (parsed.type) detail += '<b>유형:</b> ' + (TYPE_LABELS[parsed.type] || parsed.type) + '<br>';
+  detDiv.innerHTML = detail || '(자세한 정보 없음)';
+
+  if (parsed.action !== 'query') {
+    btn.style.display = 'block';
+    btn.textContent = parsed.action === 'add' ? '추가 실행' : parsed.action === 'edit' ? '변경 실행' : '삭제 실행';
+  } else {
+    btn.style.display = 'none';
+    executeVoiceQuery(parsed);
+  }
+  resDiv.style.display = 'block';
+}
+
+function executeVoiceCommand() {
+  if (!voiceParsed) return;
+  var p = voiceParsed;
+  if (p.action === 'add') {
+    if (!p.name) { alert('일정 이름을 말씀해주세요. 예: "내일 오후 3시 한국어 수업 추가"'); return; }
+    var item = { id: 'sch_' + Date.now(), name: p.name, date: p.date || '', day: p.day || '', start: p.start || '10:00', end: p.end || '11:00', type: p.type, loc: p.loc || '', created_at: new Date().toISOString() };
+    schedules.push(item);
+    saveAndSync();
+    alert('"' + p.name + '" 일정을 추가했습니다!');
+  }
+  else if (p.action === 'edit' && p.targetId) {
+    var idx = schedules.findIndex(function(x) { return x.id === p.targetId; });
+    if (idx > -1) {
+      if (p.start) schedules[idx].start = p.start;
+      if (p.end) schedules[idx].end = p.end;
+      if (p.date) { schedules[idx].date = p.date; schedules[idx].day = ''; }
+      if (p.day) { schedules[idx].day = p.day; schedules[idx].date = ''; }
+      saveAndSync();
+      alert('"' + schedules[idx].name + '" 일정을 변경했습니다!');
+    }
+  }
+  else if (p.action === 'delete' && p.targetId) {
+    var name = schedules.find(function(x) { return x.id === p.targetId; }).name;
+    schedules = schedules.filter(function(x) { return x.id !== p.targetId; });
+    saveAndSync();
+    alert('"' + name + '" 일정을 삭제했습니다!');
+  }
+  else if (p.action === 'delete' && p.name) {
+    var matches = schedules.filter(function(x) { return x.name.includes(p.name); });
+    if (matches.length === 1) {
+      schedules = schedules.filter(function(x) { return x.id !== matches[0].id; });
+      saveAndSync();
+      alert('"' + matches[0].name + '" 일정을 삭제했습니다!');
+    } else if (matches.length > 1) {
+      alert('여러 개가 검색됩니다. 정확한 이름을 말씀해주세요.');
+    } else {
+      alert('해당 이름의 일정을 찾을 수 없습니다.');
+    }
+  }
+  document.getElementById('voiceResult').style.display = 'none';
+  document.getElementById('voiceTranscript').textContent = '';
+  voiceParsed = null;
+}
+
+function executeVoiceQuery(p) {
+  var date = p.date ? new Date(p.date) : new Date();
+  var events = getTodayEvents(date);
+  var detDiv = document.getElementById('vDetail');
+  if (events.length === 0) {
+    detDiv.innerHTML += '<br><b>조회 결과:</b> 해당 날짜에 일정이 없습니다.';
+  } else {
+    var list = events.map(function(e) { return '• ' + e.name + ' ' + formatTimeWithTz(e.start) + '~' + formatTimeWithTz(e.end); }).join('<br>');
+    detDiv.innerHTML += '<br><b>조회 결과:</b><br>' + list;
+  }
+}
+
+function saveAndSync() {
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  if (sb) syncToSupabase();
+  loadSaved();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+function startKimiVoice() {
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { alert('이 브라우저는 음성 인식을 지원하지 않습니다. Chrome을 사용하세요.'); return; }
+  if (window.__kimiVoiceListening) return;
+  window.__kimiVoiceListening = true;
+  var rec = new SpeechRecognition();
+  rec.lang = 'ko-KR';
+  rec.continuous = false;
+  rec.interimResults = false;
+  var btn = document.querySelector('button[onclick="startKimiVoice()"]');
+  if (btn) { btn.textContent = '🎤 듣는 중...'; btn.style.background = '#e74c3c'; }
+  rec.onstart = function() {};
+  rec.onend = function() { window.__kimiVoiceListening = false; if (btn) { btn.textContent = '🎤 음성으로 말하기'; btn.style.background = ''; } };
+  rec.onresult = function(e) {
+    var transcript = e.results[0][0].transcript;
+    document.getElementById('kimiPrompt').value = transcript;
+    callKimiApi();
+  };
+  rec.onerror = function(e) { window.__kimiVoiceListening = false; if (btn) { btn.textContent = '🎤 음성으로 말하기'; btn.style.background = ''; } alert('음성 인식 오류: ' + e.error); };
+  try { rec.start(); } catch(e) { window.__kimiVoiceListening = false; alert('음성 인식을 시작할 수 없습니다.'); }
+}
+
+function saveKimiApiKey() {
+  var key = document.getElementById('kimiApiKey').value.trim();
+  if (!key) { alert('API 키를 입력하세요.'); return; }
+  localStorage.setItem('kimi_api_key', key);
+  alert('API 키가 저장되었습니다. 이 기기의 브라우저에만 저장됩니다.');
+}
+function loadKimiApiKey() {
+  var key = localStorage.getItem('kimi_api_key') || '';
+  var el = document.getElementById('kimiApiKey');
+  if (el && key) el.value = key;
+}
+
+function handleKimiImage(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result;
+    addKimiChatMessage('나', '📷 사진 업로드');
+    sendKimiImage(base64);
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function sendKimiImage(base64) {
+  var key = document.getElementById('kimiApiKey').value.trim();
+  if (!key) { addKimiChatMessage('AI', 'API 키를 입력하고 저장하세요.'); return; }
+  var summary = schedules.map(function(s) {
+    var when = s.date ? s.date : ['일','월','화','수','목','금','토'][s.day] + '요일 반복';
+    return '- ' + s.name + ' | ' + when + ' ' + s.start + '~' + s.end;
+  }).join('\n');
+  var systemMsg = '당신은 Paul Bhang Schedule 앱의 일정 관리 도우미입니다. 이 사진(시간표, 강의 계획, 일정표 등)을 분석해서 일정을 추출하세요.\n\n[응답 규칙]\n1. JSON 형식: {"description":"확인 메시지","schedules":[{"id":"...","name":"...","day":"0~6또는빈값","date":"YYYY-MM-DD또는빈값","start":"HH:MM","end":"HH:MM","type":"personal/zoom/offline/other","loc":"장소","created_at":"..."}]}\n2. date와 day 중 하나만 사용.\n3. 현재 일정은 유지하고 추가/변경만 반영.\n\n[현재 일정]\n' + summary;
+  addKimiChatMessage('AI', '사진 분석 중...');
+  fetch('https://api.moonshot.cn/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: 'moonshot-v1-32k',
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: [
+          { type: 'text', text: '이 사진의 일정을 분석해서 JSON으로 반환해주세요.' },
+          { type: 'image_url', image_url: { url: base64 } }
+        ]}
+      ],
+      temperature: 0.05
+    })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(data) {
+    var content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '';
+    content = content.replace(/```json\s*|\s*```/g, '').trim();
+    var jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) { addKimiChatMessage('AI', '사진에서 일정을 인식하지 못했습니다.'); return; }
+    try {
+      var parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.description) addKimiChatMessage('AI', parsed.description);
+      if (parsed.schedules && Array.isArray(parsed.schedules)) {
+        __kimiLastResponse = parsed.schedules;
+        var list = parsed.schedules;
+        var summaryLines = [];
+        list.forEach(function(item) {
+          var old = schedules.find(function(s) { return s.id === item.id; });
+          var when = item.date ? item.date : (item.day !== undefined && item.day !== '' ? ['일','월','화','수','목','금','토'][item.day] + '요일' : '');
+          if (!old) {
+            summaryLines.push('➕ 추가: ' + item.name + ' (' + when + ' ' + item.start + '~' + item.end + ')');
+          } else {
+            var changes = [];
+            if (old.name !== item.name) changes.push('이름 "' + old.name + '" → "' + item.name + '"');
+            var oldWhen = old.date ? old.date : (old.day !== undefined && old.day !== '' ? ['일','월','화','수','목','금','토'][old.day] + '요일' : '');
+            if (oldWhen !== when) changes.push('날짜/요일 ' + oldWhen + ' → ' + when);
+            if (old.start !== item.start || old.end !== item.end) changes.push('시간 ' + old.start + '~' + old.end + ' → ' + item.start + '~' + item.end);
+            if (changes.length > 0) {
+              summaryLines.push('✏️ 변경: ' + item.name + ' — ' + changes.join(' / '));
+            }
+          }
+        });
+        var display = summaryLines.length ? summaryLines.join('\n') : '변경사항이 없습니다.';
+        document.getElementById('kimiResultPreview').textContent = display;
+        document.getElementById('kimiResultDesc').textContent = '위 내용으로 적용할까요?';
+        document.getElementById('kimiResult').style.display = 'block';
+      } else {
+        addKimiChatMessage('AI', '사진에서 일정을 찾지 못했습니다.');
+      }
+    } catch(e) {
+      addKimiChatMessage('AI', '사진 분석 중 오류가 발생했습니다.');
+    }
+  }).catch(function(e) {
+    addKimiChatMessage('AI', '오류: ' + e.message);
+  });
+}
+function sendKimiChat() {
+  var prompt = document.getElementById('kimiPrompt').value.trim();
+  if (!prompt) return;
+  addKimiChatMessage('나', prompt);
+  document.getElementById('kimiPrompt').value = '';
+  callKimiApi(prompt);
+}
+
+function addKimiChatMessage(who, text) {
+  var chat = document.getElementById('kimiChat');
+  var div = document.createElement('div');
+  div.style.cssText = 'margin-bottom:8px;padding:8px;border-radius:6px;' + (who === '나' ? 'background:#e3f2fd;text-align:right' : 'background:#fff;text-align:left');
+  div.innerHTML = '<b>' + who + ':</b> ' + text.replace(/\n/g, '<br>');
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+var __kimiLastResponse = null;
+
+function callKimiApi(prompt) {
+  var key = document.getElementById('kimiApiKey').value.trim();
+  var resultDiv = document.getElementById('kimiResult');
+  var preview = document.getElementById('kimiResultPreview');
+  var desc = document.getElementById('kimiResultDesc');
+  if (!key) { addKimiChatMessage('AI', 'API 키를 입력하고 저장하세요.'); return; }
+  localStorage.setItem('kimi_api_key', key);
+  var summary = schedules.map(function(s) {
+    var when = s.date ? s.date : ['일','월','화','수','목','금','토'][s.day] + '요일 반복';
+    return '- ' + s.name + ' | ' + when + ' ' + s.start + '~' + s.end;
+  }).join('\n');
+  var systemMsg = '당신은 Paul Bhang Schedule 앱의 일정 관리 도우미입니다.\n\n[중요 규칙]\n1. 사용자의 요청이 모호하거나 정보가 부족하면 JSON 대신 질문을 하세요.\n2. 요청이 명확하면 JSON 형식으로 응답하세요.\n3. JSON 형식: {"description":"사용자에게 보여줄 확인 메시지","schedules":[{"id":"...","name":"...","day":"0~6또는빈값","date":"YYYY-MM-DD또는빈값","start":"HH:MM","end":"HH:MM","type":"personal/zoom/offline/other","loc":"장소","created_at":"..."}]}\n4. date와 day 중 하나만 사용. 반복=day(0=일,1=월...6=토), 특정날짜=date.\n5. 수정/삭제 시 해당 일정만 변경하고 나머지는 그대로 포함.\n6. 삭제된 일정은 응답에 포함하지 마세요.\n7. 새 일정 id는 "sch_" + 타임스탬프.\n\n[현재 일정]\n' + summary;
+  addKimiChatMessage('AI', '생각 중...');
+  fetch('https://api.moonshot.cn/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model: 'moonshot-v1-32k', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.05 })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(data) {
+    var content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '';
+    content = content.replace(/```json\s*|\s*```/g, '').trim();
+    var jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      addKimiChatMessage('AI', '응답을 이해하지 못했습니다. 다시 시도해주세요.');
+      return;
+    }
+    try {
+      var parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.description) {
+        addKimiChatMessage('AI', parsed.description);
+      }
+      if (parsed.schedules && Array.isArray(parsed.schedules)) {
+        __kimiLastResponse = parsed.schedules;
+        var list = parsed.schedules;
+        var summaryLines = [];
+        list.forEach(function(item) {
+          var old = schedules.find(function(s) { return s.id === item.id; });
+          var when = item.date ? item.date : (item.day !== undefined && item.day !== '' ? ['일','월','화','수','목','금','토'][item.day] + '요일' : '');
+          if (!old) {
+            summaryLines.push('➕ 추가: ' + item.name + ' (' + when + ' ' + item.start + '~' + item.end + ')');
+          } else {
+            var changes = [];
+            if (old.name !== item.name) changes.push('이름 "' + old.name + '" → "' + item.name + '"');
+            var oldWhen = old.date ? old.date : (old.day !== undefined && old.day !== '' ? ['일','월','화','수','목','금','토'][old.day] + '요일' : '');
+            if (oldWhen !== when) changes.push('날짜/요일 ' + oldWhen + ' → ' + when);
+            if (old.start !== item.start || old.end !== item.end) changes.push('시간 ' + old.start + '~' + old.end + ' → ' + item.start + '~' + item.end);
+            if (changes.length > 0) {
+              summaryLines.push('✏️ 변경: ' + item.name + ' — ' + changes.join(' / '));
+            }
+          }
+        });
+        var display = summaryLines.length ? summaryLines.join('\n') : '변경사항이 없습니다.';
+        preview.textContent = display;
+        desc.textContent = '위 내용으로 적용할까요?';
+        resultDiv.style.display = 'block';
+      } else if (!parsed.description) {
+        addKimiChatMessage('AI', '이해하지 못했습니다. 더 구체적으로 말씀해주세요. 예: "월요일 Ingrid 5시로 변경"');
+      }
+    } catch(parseErr) {
+      addKimiChatMessage('AI', '응답 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+  }).catch(function(e) {
+    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nCORS 문제일 수 있습니다. Kimi 웹사이트에서 수동으로 진행하세요.');
+  });
+}
+function cancelKimiResult() {
+  document.getElementById('kimiResult').style.display = 'none';
+  document.getElementById('kimiResultPreview').textContent = '';
+  __kimiLastResponse = null;
+}
+
+function applyKimiResult() {
+  var newSchedules = __kimiLastResponse;
+  if (!newSchedules || !Array.isArray(newSchedules)) { alert('적용할 내용이 없습니다.'); return; }
+
+  try {
+    // Merge: 기존 일정은 유지하고, Kimi 응답에 있는 것만 추가/업데이트
+    var merged = [];
+    var newIds = newSchedules.map(function(s) { return s.id; });
+
+    // 기존 일정 중 Kimi 응답에 없는 것은 유지
+    schedules.forEach(function(old) {
+      if (!newIds.includes(old.id)) {
+        merged.push(old);
+      }
+    });
+
+    // Kimi 응답에 있는 것은 추가/업데이트
+    newSchedules.forEach(function(ns) {
+      var idx = merged.findIndex(function(s) { return s.id === ns.id; });
+      if (idx >= 0) {
+        merged[idx] = ns; // 업데이트
+      } else {
+        merged.push(ns); // 추가
+      }
+    });
+
+    var changedCount = newSchedules.length;
+    if (!confirm('위 내용을 적용할까요?\n(기존 일정은 삭제되지 않습니다)')) return;
+    schedules = merged;
+    localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+    if (sb) syncToSupabase();
+    loadSaved();
+    renderToday();
+    renderWeekly();
+    renderCalendar();
+    renderKimiSummary();
+    document.getElementById('kimiResultPreview').textContent = '';
+    document.getElementById('kimiPrompt').value = '';
+    document.getElementById('kimiResult').style.display = 'none';
+    alert('적용 완료!');
+  } catch(e) {
+    alert('JSON 파싱 오류: ' + e.message);
+  }
+}
+
+function addScheduleFromKimi() {
+  var name = document.getElementById('kimiInName').value.trim();
+  var date = document.getElementById('kimiInDate').value;
+  var endDate = document.getElementById('kimiInEndDate').value;
+  var day = document.getElementById('kimiInDay').value;
+  var start = document.getElementById('kimiInStart').value;
+  var end = document.getElementById('kimiInEnd').value;
+  var type = document.getElementById('kimiInType').value;
+  var loc = document.getElementById('kimiInLoc').value.trim();
+  if (!name || !start || !end) { alert('이름과 시간을 입력해주세요.'); return; }
+  
+  if (endDate && endDate > date) {
+    var cur = new Date(date);
+    var last = new Date(endDate);
+    var count = 0;
+    while (cur <= last) {
+      var ds = cur.getFullYear() + '-' + String(cur.getMonth()+1).padStart(2,'0') + '-' + String(cur.getDate()).padStart(2,'0');
+      var item = { id: 'sch_' + Date.now() + '_' + count, name: name, date: ds, day: '', start: start, end: end, type: type, loc: loc, created_at: new Date().toISOString() };
+      schedules.push(item);
+      count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    alert(count + '일간의 일정을 추가했습니다!');
+  } else {
+    var item = {
+      id: 'sch_' + Date.now(),
+      name: name,
+      date: date || '',
+      day: day,
+      start: start,
+      end: end,
+      type: type,
+      loc: loc,
+      created_at: new Date().toISOString()
+    };
+    schedules.push(item);
+    alert('추가 완료!');
+  }
+  localStorage.setItem('pb_schedules', JSON.stringify(schedules));
+  if (sb) syncToSupabase();
+  document.getElementById('kimiInName').value = '';
+  document.getElementById('kimiInLoc').value = '';
+  document.getElementById('kimiInDate').value = '';
+  document.getElementById('kimiInEndDate').value = '';
+  renderKimiSummary();
+  renderToday();
+  renderWeekly();
+  renderCalendar();
+}
+
+function renderKimiSummary() {
+  var el = document.getElementById('kimiSummary');
+  if (!el) return;
+  var summary = schedules.map(function(s) {
+    var when = s.date ? s.date : ['일','월','화','수','목','금','토'][s.day] + '요일 반복';
+    return '- ' + s.name + ' | ' + when + ' ' + s.start + '~' + s.end + ' | ' + (TYPE_LABELS[s.type] || '기타') + ' | ' + (s.loc || '');
+  }).join('\n');
+  el.textContent = summary || '등록된 일정이 없습니다.';
+}
+
+</script>
+</body>
+</html>
