@@ -1616,9 +1616,6 @@ function callKimiApi(prompt) {
   var model = 'moonshot-v1-32k';
   var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
   fetch(apiUrl, {
-  var model = 'moonshot-v1-32k';
-  var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
-  fetch(apiUrl, {
     method: 'POST',
     headers: headers,
     body: JSON.stringify({ model: model, messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.05 })
