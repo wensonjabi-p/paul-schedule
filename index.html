@@ -835,17 +835,6 @@ function renderWeekly() {
     html += '<th>' + d + '<br><span style="font-size:10px;font-weight:normal;color:#aaa">' + md + '</span></th>';
   });
   html += '</tr>';
-  var hours = getWeeklyHours();
-  var days = ['일','월','화','수','목','금','토'];
-  var html = '<tr><th class="time-col">시간</th>';
-  days.forEach(function(d) { html += '<th>' + d + '</th>'; });
-  html += '</tr>';
-
-  // 현재 주의 월요일 날짜 계산
-  var now = new Date();
-  var monday = new Date(now);
-  monday.setDate(monday.getDate() - monday.getDay() + 1);
-
   hours.forEach(function(h) {
     html += '<tr><td class="time-label">' + h + '</td>';
     for (var dow = 0; dow < 7; dow++) {
