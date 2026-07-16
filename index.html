@@ -634,6 +634,32 @@ const HOLIDAYS = {
 };
 
 function getHoliday(dateStr) {
+  var h = HOLIDAYS[dateStr] || null;
+  if (h && !h.desc) {
+    var descMap = {
+      '신정': '새해 첫날입니다. 떡국을 먹으며 새로운 한 해를 맞이합니다.',
+      '설날': '음력 1월 1일, 한국 최대 명절입니다. 떡국을 먹고 가족들과 세배를 나눕니다.',
+      '삼일절': '3·1 독립운동 기념일입니다. 태극기를 게양하며 독립정신을 기립니다.',
+      '어린이날': '어린이를 위한 날입니다. 동물원, 놀이공원 등을 방문합니다.',
+      '현충일': '국군의 날로 국립묘지 참배를 합니다.',
+      '광복절': '해방 기념일입니다. 태극기를 게양하며 독립을 기념합니다.',
+      '추석': '음력 8월 15일, 한국 명절입니다. 송편을 빚고 성묘를 합니다.',
+      '개천절': '단군 신화의 건국 기념일입니다.',
+      '한글날': '세종대왕의 한글 창제를 기념합니다.',
+      '성탄절': '크리스마스로 성탄 축하와 연말 분위기를 즐깁니다.',
+      '元旦': '새해 첫날입니다. 가족·친구들과 인사를 나눕니다.',
+      '春节': '음력 설날, 중국 최대 명절입니다. 만두를 먹고 홍bao(红包)를 주고받습니다. 불꽃놀이가 하늘을 수놓습니다.',
+      '清明节': '청명절로 조상의 묘를 성묘하고 쑥떡을 먹습니다.',
+      '劳动节': '5·1 노동절로 휴식과 여행을 즐깁니다.',
+      '端午节': '단오절로 쫑zi(粽子)를 먹고 용선 경기를 봅니다.',
+      '中秋节': '중추절로 가족과 함께 월병(月饼)을 먹으며 보름달을 봅니다.',
+      '胜利日': '항일전쟁 승리 기념일입니다.',
+      '国庆节': '10·1 중화인민공화국 건국 기념일입니다. 황금주(黄金周) 연휴로 전국이 여행지로 북적입니다. 불꽃놀이와 열병식이 있습니다.'
+    };
+    h.desc = descMap[h.name] || '';
+  }
+  return h;
+}
   return HOLIDAYS[dateStr] || null;
 }
 
@@ -797,6 +823,20 @@ function getTodayEvents(date) {
 function renderWeekly() {
   var hours = getWeeklyHours();
   var days = ['일','월','화','수','목','금','토'];
+  var now = new Date();
+  var monday = new Date(now);
+  monday.setDate(monday.getDate() - monday.getDay() + 1 + (weeklyOffset * 7));
+
+  var html = '<tr><th class="time-col">시간</th>';
+  days.forEach(function(d, i) {
+    var dDate = new Date(monday);
+    dDate.setDate(monday.getDate() + i - 1);
+    var md = (dDate.getMonth()+1) + '/' + dDate.getDate();
+    html += '<th>' + d + '<br><span style="font-size:10px;font-weight:normal;color:#aaa">' + md + '</span></th>';
+  });
+  html += '</tr>';
+  var hours = getWeeklyHours();
+  var days = ['일','월','화','수','목','금','토'];
   var html = '<tr><th class="time-col">시간</th>';
   days.forEach(function(d) { html += '<th>' + d + '</th>'; });
   html += '</tr>';
@@ -888,6 +928,32 @@ function changeMonth(delta) {
   renderCalendar();
 }
 
+function getOfflineClassInfo(start, end) {
+  var sh = parseInt(start.split(':')[0], 10);
+  var sm = parseInt(start.split(':')[1], 10);
+  var eh = parseInt(end.split(':')[0], 10);
+  var em = parseInt(end.split(':')[1], 10);
+  var duration = (eh * 60 + em) - (sh * 60 + sm);
+  var totalMin = sh * 60 + sm;
+  var periodName = '';
+  var periods = [
+    { name: '1-2节 (1-2교시)', start: 480, end: 580 },
+    { name: '3-4节 (3-4교시)', start: 600, end: 700 },
+    { name: '5-6节 (5-6교시)', start: 840, end: 940 },
+    { name: '7-8节 (7-8교시)', start: 960, end: 1060 },
+    { name: '9-10节 (9-10교시)', start: 1080, end: 1180 }
+  ];
+  for (var i = 0; i < periods.length; i++) {
+    if (totalMin >= periods[i].start && totalMin < periods[i].end) { periodName = periods[i].name; break; }
+  }
+  var info = '';
+  if (periodName) info += '<div style="margin-bottom:4px">📚 교시: ' + periodName + '</div>';
+  info += '<div style="margin-bottom:4px">⏱️ 수업 시간: ' + duration + '분</div>';
+  if (duration >= 90) info += '<div>☕ 쉬는 시간: 10분 (1교시 후 휴식)</div>';
+  else info += '<div>☕ 쉬는 시간: 없음 (1교시 단위)</div>';
+  return info;
+}
+
 function showEventDetail(id) {
   var s = schedules.find(function(x) { return x.id === id; });
   if (!s) return;
@@ -897,6 +963,7 @@ function showEventDetail(id) {
     '<div style="font-size:14px;color:#888;margin-bottom:4px">' + when + '</div>' +
     '<div style="font-size:14px;color:#888;margin-bottom:4px">' + formatTimeWithTz(s.start) + ' ~ ' + formatTimeWithTz(s.end) + '</div>' +
     '<div style="font-size:14px;color:#888;margin-bottom:16px">' + (TYPE_LABELS[s.type] || '기타') + (s.loc ? ' · ' + s.loc : '') + '</div>' +
+    (s.type === 'offline' ? '<div style="background:#f0f8ff;border-radius:8px;padding:10px;margin-bottom:16px;text-align:left;font-size:13px;color:#4A857C">' + getOfflineClassInfo(s.start, s.end) + '</div>' : '') +
     '<button class="btn" onclick="closeEventDetail(); openEdit(\'' + s.id + '\')" style="max-width:200px;margin:0 auto">✏️ 수정</button>' +
     '</div>';
   document.getElementById('detailContent').innerHTML = html;
@@ -920,7 +987,9 @@ function onCalDayClick(y, m, d) {
   if (holiday) {
     html += '<div style="padding:10px;border-bottom:1px solid #eee;background:#fff3cd;border-radius:8px;margin-bottom:8px">' +
       '<div style="font-weight:bold;color:#856404">🎌 ' + holiday.name + '</div>' +
-      '<div style="font-size:12px;color:#856404">' + holiday.country + ' 공휴일</div></div>';
+      '<div style="font-size:12px;color:#856404">' + holiday.country + ' 공휴일</div>' +
+      (holiday.desc ? '<div style="font-size:13px;color:#5A4A1F;margin-top:6px;line-height:1.5">' + holiday.desc + '</div>' : '') +
+      '</div>';
   }
   events.forEach(function(ev) {
     html += '<div style="padding:10px;border-bottom:1px solid #eee">' +
@@ -1460,9 +1529,6 @@ function sendKimiImage(base64) {
   var apiUrl = proxy || 'https://api.moonshot.cn/v1/chat/completions';
   var model = 'moonshot-v1-32k';
   var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
-  var apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
-  var model = 'moonshot-v1-32k';
-  var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
   fetch(apiUrl, {
     method: 'POST',
     headers: headers,
@@ -1521,7 +1587,7 @@ function sendKimiImage(base64) {
       addKimiChatMessage('AI', '사진 분석 중 오류가 발생했습니다. 응답:\n' + content.substring(0,400) + '\n\n오류: ' + e.message);
     }
   }).catch(function(e) {
-    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nCORS 문제일 수 있습니다. 아래 해결 방법을 확인하세요.');
+    addKimiChatMessage('AI', '오류: ' + e.message + '\n\n프록시 URL이 설정되지 않았거나 CORS 정책에 의해 차단되었습니다.\nKimi 탭 하단의 "프록시 URL"을 설정하거나, 네트워크 연결을 확인하세요.');
   });
 }
 function sendKimiChat() {
@@ -1560,7 +1626,7 @@ function callKimiApi(prompt) {
   var apiUrl = proxy || 'https://api.moonshot.cn/v1/chat/completions';
   var model = 'moonshot-v1-32k';
   var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
-  var apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
+  fetch(apiUrl, {
   var model = 'moonshot-v1-32k';
   var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
   fetch(apiUrl, {
@@ -1616,7 +1682,7 @@ function callKimiApi(prompt) {
       addKimiChatMessage('AI', '응답 처리 중 오류가 발생했습니다. AI 응답:\n' + content.substring(0,400) + '\n\n오류: ' + parseErr.message);
     }
   }).catch(function(e) {
-    addKimiChatMessage('AI', '오류: ' + e.message + '\n\nCORS 문제일 수 있습니다. 아래 해결 방법을 확인하세요.');
+    addKimiChatMessage('AI', '오류: ' + e.message + '\n\n프록시 URL이 설정되지 않았거나 CORS 정책에 의해 차단되었습니다.\nKimi 탭 하단의 "프록시 URL"을 설정하거나, 네트워크 연결을 확인하세요.');
   });
 }
 function cancelKimiResult() {
