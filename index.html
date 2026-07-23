@@ -1595,80 +1595,137 @@ function addKimiChatMessage(who, text) {
 }
 
 var __kimiLastResponse = null;
+var __kimiConversationHistory = [];
+var __kimiPendingAction = null;
+
+function clearKimiChat() {
+  document.getElementById('kimiChat').innerHTML = '';
+  __kimiConversationHistory = [];
+  __kimiLastResponse = null;
+  __kimiPendingAction = null;
+  cancelKimiResult();
+}
 
 function callKimiApi(prompt) {
   var key = document.getElementById('kimiApiKey').value.trim();
-  var resultDiv = document.getElementById('kimiResult');
-  var preview = document.getElementById('kimiResultPreview');
-  var desc = document.getElementById('kimiResultDesc');
   if (!key) { addKimiChatMessage('AI', 'API 키를 입력하고 저장하세요.'); return; }
   localStorage.setItem('kimi_api_key', key);
+
   var summary = schedules.map(function(s) {
     var when = s.date ? s.date : ['일','월','화','수','목','금','토'][s.day] + '요일 반복';
     return '- ' + s.name + ' | ' + when + ' ' + s.start + '~' + s.end;
   }).join('\n');
-  var systemMsg = '당신은 Paul Bhang Schedule 앱의 일정 관리 도우미입니다.\n\n[중요 규칙]\n1. 사용자의 요청이 모호하거나 정보가 부족하면 JSON 대신 질문을 하세요.\n2. 요청이 명확하면 JSON 형식으로 응답하세요.\n3. JSON 형식: {"description":"사용자에게 보여줄 확인 메시지","schedules":[{"id":"...","name":"...","day":"0~6또는빈값","date":"YYYY-MM-DD또는빈값","start":"HH:MM","end":"HH:MM","type":"personal/zoom/offline/other","loc":"장소","created_at":"..."}]}\n4. date와 day 중 하나만 사용. 반복=day(0=일,1=월...6=토), 특정날짜=date.\n5. 수정/삭제 시 해당 일정만 변경하고 나머지는 그대로 포함.\n6. 삭제된 일정은 응답에 포함하지 마세요.\n7. 새 일정 id는 "sch_" + 타임스탬프.\n\n[현재 일정]\n' + summary;
-  addKimiChatMessage('AI', '생각 중...');
+
+  var todayStr = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0');
+
+  var systemMsg = '당신은 Paul Bhang Schedule 앱의 일정 관리 도우미 "키미"입니다. 사용자와 자연스럽게 대화하며 일정을 관리하세요.\n\n[오늘 날짜] ' + todayStr + '\n\n[응답 규칙 - 반드시 지키세요]\n1. 사용자의 요청이 모호하거나 정보가 부족하면 **반드시 질문**하세요.\n2. 질문할 때: {\"type\":\"question\",\"message\":\"질문 내용\"}\n3. 변경 전 확인이 필요할 때: {\"type\":\"confirm\",\"message\":\"확인 메시지\",\"schedules\":[...]}\n4. 바로 실행해도 될 때: {\"type\":\"action\",\"message\":\"완료 메시지\",\"schedules\":[...]}\n5. 일반 대화/안내: {\"type\":\"chat\",\"message\":\"대화 내용\"}\n\n[일정 JSON 형식]\n- id: 기존 일정 수정시 기존 id 유지, 새 일정은 \"sch_\" + 타임스탬프\n- name: 일정 이름\n- day: 0=일,1=월...6=토 (반복 일정), date: YYYY-MM-DD (특정 날짜)\n- start/end: HH:MM\n- type: personal/zoom/offline/other\n- loc: 장소/메모\n\n[현재 일정]\n' + summary;
+
+  // 이전 대화 맥락 구성
+  var messages = [{ role: 'system', content: systemMsg }];
+  __kimiConversationHistory.forEach(function(turn) {
+    messages.push({ role: 'user', content: turn.user });
+    messages.push({ role: 'assistant', content: turn.assistant });
+  });
+  messages.push({ role: 'user', content: prompt });
+
+  // "생각 중..." 표시
+  var thinkingId = 'thinking_' + Date.now();
+  addKimiChatMessage('AI', '<span id="' + thinkingId + '">생각 중...</span>');
+
   var proxy = document.getElementById('kimiProxyUrl').value.trim() || localStorage.getItem('kimi_proxy_url') || '';
   var apiUrl = proxy || 'https://api.moonshot.cn/v1/chat/completions';
   var model = 'moonshot-v1-32k';
   var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'x-msh-platform': 'web' };
+
   fetch(apiUrl, {
     method: 'POST',
     headers: headers,
-    body: JSON.stringify({ model: model, messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.05 })
+    body: JSON.stringify({ model: model, messages: messages, temperature: 0.1 })
   }).then(function(r) {
     return r.text().then(function(text) {
       if (!r.ok) throw new Error('HTTP ' + r.status + ' - ' + text.substring(0,200));
       try { return JSON.parse(text); } catch(e) { throw new Error('JSON 파싱 실패: ' + text.substring(0,300)); }
     });
   }).then(function(data) {
+    // "생각 중..." 제거
+    var thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.parentElement.remove();
+
     var content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '';
     content = content.replace(/```json\s*|\s*```/g, '').trim();
-    var jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      addKimiChatMessage('AI', '응답을 이해하지 못했습니다. AI 응답:\n' + content.substring(0,300));
-      return;
+
+    // JSON 블록 추출
+    var jsonMatch = content.match(/\{[\s\S]*?\}/);
+    var parsed = null;
+    var plainText = content;
+
+    if (jsonMatch) {
+      try { parsed = JSON.parse(jsonMatch[0]); plainText = content.replace(jsonMatch[0], '').trim(); } catch(e) {}
     }
-    try {
-      var parsed = JSON.parse(jsonMatch[0]);
-      if (parsed.description) {
-        addKimiChatMessage('AI', parsed.description);
+
+    // 대화 기록 저장
+    __kimiConversationHistory.push({ user: prompt, assistant: content });
+    // 너무 길어지면 앞에서 자르기
+    if (__kimiConversationHistory.length > 10) __kimiConversationHistory.shift();
+
+    if (parsed && parsed.type) {
+      if (parsed.type === 'question') {
+        addKimiChatMessage('AI', parsed.message || '어떤 일정을 말씀하시는 건가요?');
+        __kimiPendingAction = 'question';
+      } else if (parsed.type === 'confirm') {
+        addKimiChatMessage('AI', parsed.message || '확인해주세요.');
+        if (parsed.schedules && Array.isArray(parsed.schedules)) {
+          __kimiLastResponse = parsed.schedules;
+          showKimiConfirm(parsed.schedules);
+        }
+      } else if (parsed.type === 'action') {
+        addKimiChatMessage('AI', parsed.message || '처리 완료했습니다.');
+        if (parsed.schedules && Array.isArray(parsed.schedules)) {
+          __kimiLastResponse = parsed.schedules;
+          applyKimiResult();
+        }
+      } else if (parsed.type === 'chat') {
+        addKimiChatMessage('AI', parsed.message || content);
+      } else {
+        addKimiChatMessage('AI', parsed.message || content);
       }
-      if (parsed.schedules && Array.isArray(parsed.schedules)) {
-        __kimiLastResponse = parsed.schedules;
-        var list = parsed.schedules;
-        var summaryLines = [];
-        list.forEach(function(item) {
-          var old = schedules.find(function(s) { return s.id === item.id; });
-          var when = item.date ? item.date : (item.day !== undefined && item.day !== '' ? ['일','월','화','수','목','금','토'][item.day] + '요일' : '');
-          if (!old) {
-            summaryLines.push('➕ 추가: ' + item.name + ' (' + when + ' ' + item.start + '~' + item.end + ')');
-          } else {
-            var changes = [];
-            if (old.name !== item.name) changes.push('이름 "' + old.name + '" → "' + item.name + '"');
-            var oldWhen = old.date ? old.date : (old.day !== undefined && old.day !== '' ? ['일','월','화','수','목','금','토'][old.day] + '요일' : '');
-            if (oldWhen !== when) changes.push('날짜/요일 ' + oldWhen + ' → ' + when);
-            if (old.start !== item.start || old.end !== item.end) changes.push('시간 ' + old.start + '~' + old.end + ' → ' + item.start + '~' + item.end);
-            if (changes.length > 0) {
-              summaryLines.push('✏️ 변경: ' + item.name + ' — ' + changes.join(' / '));
-            }
-          }
-        });
-        var display = summaryLines.length ? summaryLines.join('\n') : '변경사항이 없습니다.';
-        preview.textContent = display;
-        desc.textContent = '위 내용으로 적용할까요?';
-        resultDiv.style.display = 'block';
-      } else if (!parsed.description) {
-        addKimiChatMessage('AI', '이해하지 못했습니다. 더 구체적으로 말씀해주세요. 예: "월요일 Ingrid 5시로 변경"');
-      }
-    } catch(parseErr) {
-      addKimiChatMessage('AI', '응답 처리 중 오류가 발생했습니다. AI 응답:\n' + content.substring(0,400) + '\n\n오류: ' + parseErr.message);
+    } else {
+      // JSON 파싱 실패하면 일반 텍스트로 표시
+      addKimiChatMessage('AI', plainText || content || '죄송해요, 잘 이해하지 못했어요. 다시 말씀해주세요.');
     }
   }).catch(function(e) {
+    var thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.parentElement.remove();
     addKimiChatMessage('AI', '오류: ' + e.message + '\n\n프록시 URL이 설정되지 않았거나 CORS 정책에 의해 차단되었습니다.\nKimi 탭 하단의 "프록시 URL"을 설정하거나, 네트워크 연결을 확인하세요.');
   });
 }
+
+function showKimiConfirm(schedules) {
+  var resultDiv = document.getElementById('kimiResult');
+  var preview = document.getElementById('kimiResultPreview');
+  var desc = document.getElementById('kimiResultDesc');
+  var list = schedules;
+  var summaryLines = [];
+  list.forEach(function(item) {
+    var old = window.schedules.find(function(s) { return s.id === item.id; });
+    var when = item.date ? item.date : (item.day !== undefined && item.day !== '' ? ['일','월','화','수','목','금','토'][item.day] + '요일' : '');
+    if (!old) {
+      summaryLines.push('➕ 추가: ' + item.name + ' (' + when + ' ' + item.start + '~' + item.end + ')');
+    } else {
+      var changes = [];
+      if (old.name !== item.name) changes.push('이름 "' + old.name + '" → "' + item.name + '"');
+      var oldWhen = old.date ? old.date : (old.day !== undefined && old.day !== '' ? ['일','월','화','수','목','금','토'][old.day] + '요일' : '');
+      if (oldWhen !== when) changes.push('날짜/요일 ' + oldWhen + ' → ' + when);
+      if (old.start !== item.start || old.end !== item.end) changes.push('시간 ' + old.start + '~' + old.end + ' → ' + item.start + '~' + item.end);
+      if (changes.length > 0) summaryLines.push('✏️ 변경: ' + item.name + ' — ' + changes.join(' / '));
+    }
+  });
+  var display = summaryLines.length ? summaryLines.join('\n') : '변경사항이 없습니다.';
+  preview.textContent = display;
+  desc.textContent = '위 내용으로 적용할까요?';
+  resultDiv.style.display = 'block';
+}
+
 function cancelKimiResult() {
   document.getElementById('kimiResult').style.display = 'none';
   document.getElementById('kimiResultPreview').textContent = '';
