@@ -1488,34 +1488,33 @@ function loadKimiApiKey() {
   var hash = location.hash.slice(1);
   var hashKey = '', hashProxy = '';
   if (hash) {
-    var params = new URLSearchParams(hash);
-    hashKey = params.get('key') || '';
-    hashProxy = params.get('proxy') || '';
-    if (hashKey) {
-      localStorage.setItem('kimi_api_key', hashKey);
-      if (hashProxy) localStorage.setItem('kimi_proxy_url', hashProxy);
-      // hash 제거 (보안)
-      history.replaceState(null, null, location.pathname + location.search);
-    }
+    try {
+      // 구형 브라우저 호환: 수동 파싱 (URLSearchParams 대신)
+      var pairs = hash.split('&');
+      for (var i = 0; i < pairs.length; i++) {
+        var pair = pairs[i].split('=');
+        if (pair.length === 2) {
+          var k = decodeURIComponent(pair[0]);
+          var v = decodeURIComponent(pair[1]);
+          if (k === 'key') hashKey = v;
+          if (k === 'proxy') hashProxy = v;
+        }
+      }
+      if (hashKey) {
+        localStorage.setItem('kimi_api_key', hashKey);
+        if (hashProxy) localStorage.setItem('kimi_proxy_url', hashProxy);
+        // hash 제거 (보안) - 구형 브라우저 대응
+        if (window.history && history.replaceState) {
+          try { history.replaceState(null, null, location.pathname + location.search); } catch(e) {}
+        } else {
+          location.hash = '';
+        }
+      }
+    } catch(e) {}
   }
   // 2. localStorage에서 읽기
   var key = hashKey || localStorage.getItem('kimi_api_key') || '';
   var proxy = hashProxy || localStorage.getItem('kimi_proxy_url') || '';
-  var el = document.getElementById('kimiApiKey');
-  var proxyEl = document.getElementById('kimiProxyUrl');
-  if (el && key) el.value = key;
-  if (proxyEl) proxyEl.value = proxy;
-}
-  var key = document.getElementById('kimiApiKey').value.trim();
-  var proxy = document.getElementById('kimiProxyUrl').value.trim();
-  if (!key) { alert('API 키를 입력하세요.'); return; }
-  localStorage.setItem('kimi_api_key', key);
-  localStorage.setItem('kimi_proxy_url', proxy);
-  alert('API 키' + (proxy ? ' + 프록시 URL' : '') + '가 저장되었습니다.');
-}
-function loadKimiApiKey() {
-  var key = localStorage.getItem('kimi_api_key') || '';
-  var proxy = localStorage.getItem('kimi_proxy_url') || '';
   var el = document.getElementById('kimiApiKey');
   var proxyEl = document.getElementById('kimiProxyUrl');
   if (el && key) el.value = key;
