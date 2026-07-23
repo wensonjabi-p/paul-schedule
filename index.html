@@ -1479,6 +1479,38 @@ function saveKimiApiKey() {
   if (!key) { alert('API 키를 입력하세요.'); return; }
   localStorage.setItem('kimi_api_key', key);
   localStorage.setItem('kimi_proxy_url', proxy);
+  // 공유용 URL 생성
+  var shareUrl = location.protocol + '//' + location.host + location.pathname + '#key=' + encodeURIComponent(key) + (proxy ? '&proxy=' + encodeURIComponent(proxy) : '');
+  alert('API 키' + (proxy ? ' + 프록시 URL' : '') + '가 저장되었습니다.\n\n다른 기기에서 사용하려면 아래 URL을 복사해서 열세요:\n' + shareUrl);
+}
+function loadKimiApiKey() {
+  // 1. URL hash에서 먼저 읽기 (기기 간 공유용)
+  var hash = location.hash.slice(1);
+  var hashKey = '', hashProxy = '';
+  if (hash) {
+    var params = new URLSearchParams(hash);
+    hashKey = params.get('key') || '';
+    hashProxy = params.get('proxy') || '';
+    if (hashKey) {
+      localStorage.setItem('kimi_api_key', hashKey);
+      if (hashProxy) localStorage.setItem('kimi_proxy_url', hashProxy);
+      // hash 제거 (보안)
+      history.replaceState(null, null, location.pathname + location.search);
+    }
+  }
+  // 2. localStorage에서 읽기
+  var key = hashKey || localStorage.getItem('kimi_api_key') || '';
+  var proxy = hashProxy || localStorage.getItem('kimi_proxy_url') || '';
+  var el = document.getElementById('kimiApiKey');
+  var proxyEl = document.getElementById('kimiProxyUrl');
+  if (el && key) el.value = key;
+  if (proxyEl) proxyEl.value = proxy;
+}
+  var key = document.getElementById('kimiApiKey').value.trim();
+  var proxy = document.getElementById('kimiProxyUrl').value.trim();
+  if (!key) { alert('API 키를 입력하세요.'); return; }
+  localStorage.setItem('kimi_api_key', key);
+  localStorage.setItem('kimi_proxy_url', proxy);
   alert('API 키' + (proxy ? ' + 프록시 URL' : '') + '가 저장되었습니다.');
 }
 function loadKimiApiKey() {
