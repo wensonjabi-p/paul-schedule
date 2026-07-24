@@ -12,93 +12,93 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;margin:0;padding:0 0 80px;color:#333;overscroll-behavior-y:none}
-.header{background:#1a1a2e;color:white;padding:16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;margin:0;padding:0 0 64px;color:#333;overscroll-behavior-y:none}
+.header{background:#1a1a2e;color:white;padding:10px 12px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
 .header .title-wrap{flex:1;text-align:center}
-.header h1{margin:0;font-size:20px}.header p{margin:4px 0 0;font-size:13px;opacity:.8}
-#tzBtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 12px;border-radius:16px;font-size:12px;cursor:pointer;white-space:nowrap}
+.header h1{margin:0;font-size:17px}.header p{margin:2px 0 0;font-size:11px;opacity:.8}
+#tzBtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 10px;border-radius:14px;font-size:11px;cursor:pointer;white-space:nowrap}
 
-.tabs{display:flex;background:#fff;border-bottom:2px solid #ddd;overflow-x:auto;position:sticky;top:56px;z-index:99}
-.tabs button{flex:1;text-align:center;padding:14px 8px;color:#888;font-size:13px;font-weight:bold;border-bottom:3px solid transparent;white-space:nowrap;background:none;border:none;cursor:pointer}
-.tabs button.active{color:#D4736A;border-bottom-color:#D4736A}
+.section{padding:10px;display:none}.section.active{display:block}
 
-.section{padding:16px;display:none}.section.active{display:block}
+.card{background:#fff;border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{margin:0 0 8px;font-size:14px;color:#1a1a2e}
 
-.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-.card h2{margin:0 0 12px;font-size:16px;color:#1a1a2e}
+.today-header{text-align:center;padding:10px 8px;background:#fff;border-radius:10px;margin-bottom:8px}
+.today-header .day{font-size:12px;color:#888}.today-header .date{font-size:20px;font-weight:bold;color:#1a1a2e;margin:2px 0}
+.today-header .tz{font-size:11px;color:#D4736A}
 
-.today-header{text-align:center;padding:20px;background:#fff;border-radius:12px;margin-bottom:16px}
-.today-header .day{font-size:14px;color:#888}.today-header .date{font-size:24px;font-weight:bold;color:#1a1a2e;margin:4px 0}
-.today-header .tz{font-size:12px;color:#D4736A}
-
-.class-box{border-radius:10px;padding:12px;margin-bottom:10px;color:#fff}
+.class-box{border-radius:8px;padding:8px 10px;margin-bottom:6px;color:#fff}
 .class-box.blue{background:#5b7cfa}.class-box.coral{background:#D4736A}.class-box.sage{background:#4A857C}
 .class-box.purple{background:#9b59b6}.class-box.pink{background:#e84393}.class-box.gold{background:#D4A24C}
-.class-box .title{font-weight:bold;font-size:15px;margin-bottom:4px}
-.class-box .meta{font-size:12px;opacity:.9}.class-box .time{font-size:13px;margin-top:6px;font-weight:600}
-.class-box .map-link{display:inline-block;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:8px;font-size:11px;margin-top:8px;text-decoration:none;color:#fff}
+.class-box .title{font-weight:bold;font-size:14px;margin-bottom:2px}
+.class-box .meta{font-size:11px;opacity:.9}.class-box .time{font-size:12px;margin-top:3px;font-weight:600}
+.class-box .map-link{display:inline-block;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:6px;font-size:11px;margin-top:5px;text-decoration:none;color:#fff}
 
-.empty{text-align:center;padding:40px;color:#aaa}.empty .emoji{font-size:40px;margin-bottom:8px}
+.empty{text-align:center;padding:24px;color:#aaa}.empty .emoji{font-size:32px;margin-bottom:6px}
 
-.grid-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
-.grid-table th{background:#1a1a2e;color:#fff;padding:8px 4px;text-align:center;font-size:12px}
-.grid-table th.time-col{background:#333;width:40px}.grid-table td.time-label{width:40px}
-.grid-table td{border:1px solid #eee;padding:2px;text-align:center;vertical-align:top;height:36px}
-.grid-table td.time-label{background:#f5f5f5;font-weight:bold;color:#888;font-size:11px}
-.grid-table .cell-item{border-radius:4px;padding:2px;color:#fff;font-size:9px;line-height:1.2;margin-bottom:1px;cursor:pointer}
-.grid-table .cell-item .n{font-weight:bold}.grid-table .cell-item .t{font-size:9px}
+.grid-table{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed}
+.grid-table th{background:#1a1a2e;color:#fff;padding:5px 1px;text-align:center;font-size:11px;white-space:nowrap;overflow:hidden}
+.grid-table th.time-col{background:#333;width:34px}.grid-table td.time-label{width:34px}
+.grid-table td{border:1px solid #eee;padding:1px;text-align:center;vertical-align:top;height:30px}
+.grid-table td.time-label{background:#f5f5f5;font-weight:bold;color:#888;font-size:10px}
+.grid-table .cell-item{border-radius:3px;padding:2px 2px;color:#fff;font-size:10px;line-height:1.15;margin-bottom:1px;cursor:pointer;overflow:hidden}
+.grid-table .cell-item .n{font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid-table .cell-item .t{font-size:9px;white-space:nowrap}
+.wk-badge{font-size:9px;background:#ff9800;color:#fff;border-radius:7px;padding:0 4px;white-space:nowrap}
+.week-pill{display:none;font-size:10px;background:#D4736A;color:#fff;border-radius:10px;padding:2px 8px;font-weight:bold;white-space:nowrap}
+.week-pill.on{display:inline-block}
 
-.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.cal-nav button{background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer;font-weight:bold}
-.cal-nav h3{margin:0;font-size:18px}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
-.cal-header{font-size:11px;color:#888;padding:8px 0;font-weight:bold}
-.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:#fff;border:1px solid #eee;font-size:12px;position:relative;min-height:44px;cursor:pointer}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cal-nav button{background:#fff;border:1px solid #ddd;border-radius:7px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:bold}
+.cal-nav h3{margin:0;font-size:15px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-header{font-size:10px;color:#888;padding:5px 0;font-weight:bold}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:7px;background:#fff;border:1px solid #eee;font-size:11px;position:relative;min-height:38px;cursor:pointer}
 .cal-day.today{border:2px solid #D4736A;font-weight:bold;color:#D4736A}.cal-day.other{opacity:.3}
 .cal-day .multi{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap;justify-content:center}
 .cal-day .multi-dot{width:5px;height:5px;border-radius:50%}
-.cal-day .day-num{position:absolute;top:3px;left:4px;font-size:10px;font-weight:bold}
+.cal-day .day-num{position:absolute;top:2px;left:3px;font-size:9px;font-weight:bold}
 
 
-.form label{display:block;font-size:13px;color:#888;font-weight:bold;margin:12px 0 6px}
-.form input,.form select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px}
-.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:bold;color:#fff;background:#D4736A;cursor:pointer;margin-top:12px}
+.form label{display:block;font-size:12px;color:#888;font-weight:bold;margin:10px 0 5px}
+.form input,.form select{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:bold;color:#fff;background:#D4736A;cursor:pointer;margin-top:10px}
 .chat-btn-row{display:flex;flex-direction:row;gap:8px;margin-top:8px}
-.chat-btn-row .btn{flex:1 1 0;width:auto;min-width:0;margin-top:0;padding:12px 8px;white-space:nowrap;line-height:1.2;height:auto;font-size:14px}
+.chat-btn-row .btn{flex:1 1 0;width:auto;min-width:0;margin-top:0;padding:11px 8px;white-space:nowrap;line-height:1.2;height:auto;font-size:14px}
 .chat-btn-row .btn.icon-btn{flex:0 0 auto;min-width:48px}
 .btn-green{background:#4A857C}.btn-gray{background:#888}.btn-danger{background:#e74c3c}
 
-.saved-item{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#fafafa;border-radius:8px;margin-bottom:8px;border:1px solid #eee}
-.saved-item button{background:#eee;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:#e74c3c;font-weight:bold;font-size:12px}
+.saved-item{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fafafa;border-radius:7px;margin-bottom:6px;border:1px solid #eee;font-size:13px;min-height:40px}
+.saved-item button{background:#eee;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:#e74c3c;font-weight:bold;font-size:12px;min-height:32px}
 
-.alarm-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#fff;border-radius:10px;margin-bottom:8px;border:1px solid #eee}
-.alarm-item .name{font-weight:bold;font-size:14px}.alarm-item .time{font-size:12px;color:#888}
+.alarm-item{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#fff;border-radius:9px;margin-bottom:6px;border:1px solid #eee}
+.alarm-item .name{font-weight:bold;font-size:13px}.alarm-item .time{font-size:11px;color:#888}
 .toggle{width:44px;height:24px;background:#ddd;border-radius:12px;position:relative;cursor:pointer;transition:.2s}.toggle.on{background:#4A857C}
 .toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s}.toggle.on::after{left:22px}
 
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:8px 0;z-index:100}
-.bottom button{text-align:center;color:#888;font-size:10px;padding:4px 8px;background:none;border:none;cursor:pointer}
-.bottom button.active{color:#D4736A}.bottom .icon{font-size:20px;display:block;margin-bottom:2px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:5px 0;z-index:100}
+.bottom button{text-align:center;color:#888;font-size:10px;padding:3px 6px;background:none;border:none;cursor:pointer;min-height:40px}
+.bottom button.active{color:#D4736A}.bottom .icon{font-size:18px;display:block;margin-bottom:1px}
 
-.map-info{background:#f0f8ff;border-left:3px solid #4A857C;padding:12px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13px;color:#555;line-height:1.6}
+.map-info{background:#f0f8ff;border-left:3px solid #4A857C;padding:10px;border-radius:0 8px 8px 0;margin:8px 0;font-size:12px;color:#555;line-height:1.5}
 .map-info a{color:#4A857C;font-weight:bold;text-decoration:none}
 
-.status-bar{font-size:12px;padding:8px 16px;background:#fff3cd;color:#856404;border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.status-bar{font-size:11px;padding:6px 12px;background:#fff3cd;color:#856404;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .status-bar.online{background:#d4edda;color:#155724}
 .status-bar.offline{background:#f8d7da;color:#721c24}
 .status-bar .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
 
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
-.modal h3{margin:0 0 16px;font-size:18px;color:#1a1a2e}
-.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#888}
+.modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+.modal h3{margin:0 0 12px;font-size:16px;color:#1a1a2e}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#888;padding:4px}
 
-.edit-form .form-row{display:flex;gap:8px;margin-bottom:12px}
+.edit-form .form-row{display:flex;gap:8px;margin-bottom:10px}
 .edit-form .form-row>*{flex:1}
 
-.tz-toggle{display:flex;justify-content:center;gap:8px;padding:8px}
-.tz-toggle button{padding:6px 16px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer}
+.tz-toggle{display:flex;justify-content:center;gap:8px;padding:6px}
+.tz-toggle button{padding:5px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:12px;cursor:pointer}
 .tz-toggle button.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
 
 @media(min-width:500px){body{max-width:480px;margin:0 auto}.bottom{max-width:480px;left:50%;transform:translateX(-50%)}}
@@ -112,14 +112,6 @@ body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;ma
     <p id="subTitle">중국 대학 + 온라인 + 개인 일정</p>
   </div>
   <button id="tzBtn" onclick="toggleTimezone()">🇨🇳 중국</button>
-</div>
-
-<div class="tabs">
-  <button class="active" onclick="showTab('today',this); return false;">오늘</button>
-  <button onclick="showTab('weekly',this); return false;">주간</button>
-  <button onclick="showTab('monthly',this); return false;">월간</button>
-  <button onclick="showTab('kimi',this); return false;">🤖 Kimi</button>
-  <button onclick="showTab('manage',this); return false;">관리</button>
 </div>
 
 <!-- TODAY -->
@@ -139,7 +131,10 @@ body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;ma
   <div class="card">
     <div class="cal-nav" style="margin-bottom:8px">
       <button onclick="changeWeek(-1)">◀ 이전 주</button>
-      <h3 id="weeklyTitle" style="margin:0;font-size:16px">이번 주</h3>
+      <div style="display:flex;align-items:center;gap:6px">
+        <h3 id="weeklyTitle" style="margin:0;font-size:15px">--</h3>
+        <span id="weekPill" class="week-pill">이번 주</span>
+      </div>
       <button onclick="changeWeek(1)">다음 주 ▶</button>
     </div>
     <div style="overflow-x:auto">
@@ -317,7 +312,7 @@ body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;ma
 </div>
 
 <!-- DETAIL MODAL -->
-<div class="modal-overlay" id="detailModal">
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeEventDetail()">
   <div class="modal">
     <h3>📋 일정 상세 <button class="modal-close" onclick="closeEventDetail()">✕</button></h3>
     <div id="detailContent"></div>
@@ -325,7 +320,7 @@ body{font-family:'Malgun Gothic','Noto Sans KR',sans-serif;background:#f5f2ed;ma
 </div>
 
 <!-- EDIT MODAL -->
-<div class="modal-overlay" id="editModal">
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>✏️ 일정 수정 <button class="modal-close" onclick="closeModal()">✕</button></h3>
     <div class="form" id="editForm"></div>
@@ -736,7 +731,6 @@ async function syncToSupabase() {
 function showTab(id, el) {
   if (event && event.preventDefault) event.preventDefault();
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.tabs button').forEach(function(a) { a.classList.remove('active'); });
   document.querySelectorAll('.bottom button').forEach(function(a) { a.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   if (el) el.classList.add('active');
@@ -936,8 +930,8 @@ function renderToday() {
         '</div>';
     });
   }
-  // 다음 일정 10개 추가
-  var upcoming = getUpcomingEvents(now, 10);
+  // 다음 일정 5개 추가 (모바일 밀도 — 한 화면에 보이도록)
+  var upcoming = getUpcomingEvents(now, 5);
   if (upcoming.length > 0) {
     if (todayEvents.length === 0) {
       html += '<div class="empty" style="padding:16px;font-size:13px;color:#888">☕ 오늘은 일정이 없습니다</div>';
@@ -1052,7 +1046,9 @@ function renderWeekly() {
   var weekEnd = new Date(monday); weekEnd.setDate(weekEnd.getDate() + 5);
   var rangeStr = (weekStart.getMonth()+1) + '/' + weekStart.getDate() + ' ~ ' + (weekEnd.getMonth()+1) + '/' + weekEnd.getDate();
   var titleEl = document.getElementById('weeklyTitle');
-  if (titleEl) titleEl.textContent = (weeklyOffset === 0 ? '이번 주 · ' : '') + rangeStr;
+  if (titleEl) titleEl.textContent = rangeStr; // 매주 동일한 형식·크기 — "이번 주"는 pill로만 표시
+  var pillEl = document.getElementById('weekPill');
+  if (pillEl) pillEl.classList.toggle('on', weeklyOffset === 0);
 
   var todayStr = now.toDateString();
   var html = '<tr><th class="time-col">시간</th>';
@@ -1062,8 +1058,8 @@ function renderWeekly() {
     var md = (dDate.getMonth()+1) + '/' + dDate.getDate();
     var isTodayCol = dDate.toDateString() === todayStr;
     html += '<th' + (isTodayCol ? ' style="background:#ffe9a8;color:#7a5c00;border-radius:6px"' : '') + '>' + d +
-      (isTodayCol ? ' <span style="font-size:10px;background:#ff9800;color:#fff;border-radius:8px;padding:1px 6px">오늘</span>' : '') +
-      '<br><span style="font-size:10px;font-weight:normal;color:#aaa">' + md + '</span></th>';
+      (isTodayCol ? ' <span class="wk-badge">오늘</span>' : '') +
+      '<br><span style="font-size:9px;font-weight:normal;color:#aaa">' + md + '</span></th>';
   });
   html += '</tr>';
   hours.forEach(function(h) {
