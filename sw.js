@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pb-schedule-v7';
+const CACHE_NAME = 'pb-schedule-v8';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (e) => {
