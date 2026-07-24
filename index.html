@@ -377,6 +377,7 @@ window.addEventListener('DOMContentLoaded', function() {
   if (sbKeyInput) sbKeyInput.value = sbKey;
   initSupabase();
   runMigrationV10();
+  runMigrationV11();
   loadSchedules();
   updateTodayHeader();
   updateTzUI();
@@ -633,6 +634,51 @@ function runMigrationV10() {
     }
     try { alert(msg); } catch (e) { console.log(msg); }
   }
+}
+
+// v11: 사용자 확인 후 보류했던 구 잔여 일정 정리
+//  - 날짜 지정된 "비즈니스 조선어"/"한국어 청취회화Ⅱ" 중 공식 56개 세션과 (date,start,end,loc)가 일치하지 않는 것 삭제
+//  - 사진 가져오기 당시의 구 zoom 튜터링 "(Online)" 접미사 일정 삭제
+//  - KEEP: def1 Ingrid James / def2 Audrey / def3 Veronica (현재 튜터링 3건)은 절대 건드리지 않음
+function runMigrationV11() {
+  if (localStorage.getItem('pb_mig_v11')) return;
+  var stored = JSON.parse(localStorage.getItem('pb_schedules') || '[]');
+  var KEEP_IDS = ['def1', 'def2', 'def3'];
+  var STALE_CLASS_NAMES = ['비즈니스 조선어', '한국어 청취회화Ⅱ'];
+  var ONLINE_RE = /^(Vickey|Ingrid|Audrey|Ronnie|Ruth|Ciara|Bre)\b.*\(\s*online\s*\)\s*$/i;
+
+  // 공식 세션 지문 집합: date|start|end|loc (공식 56개는 이름에 차수가 붙어 있어 여기 걸리지 않지만 방어적으로 포함)
+  var official = {};
+  buildOfficialDataset().classes.forEach(function(c) {
+    official[(c.date || '') + '|' + c.start + '|' + c.end + '|' + (c.loc || '')] = true;
+  });
+
+  var removedIds = [], removedNames = [];
+  var kept = stored.filter(function(s) {
+    if (KEEP_IDS.indexOf(String(s.id || '')) >= 0) return true; // 현재 튜터링 3건 보호
+    var name = String(s.name || '');
+    if (STALE_CLASS_NAMES.indexOf(name) >= 0) {
+      var fp = (s.date || '') + '|' + (s.start || '') + '|' + (s.end || '') + '|' + (s.loc || '');
+      if (!official[fp]) { removedIds.push(s.id); removedNames.push(name + ' (' + (s.date || s.day || '?') + ')'); return false; }
+      return true;
+    }
+    if (ONLINE_RE.test(name)) { removedIds.push(s.id); removedNames.push(name); return false; }
+    return true;
+  });
+
+  if (removedIds.length > 0) {
+    localStorage.setItem('pb_schedules', JSON.stringify(kept));
+    schedules = kept;
+    if (sb) {
+      sb.from('schedules').delete().in('id', removedIds).then(function() {
+        syncToSupabase();
+      }).catch(function() { syncToSupabase(); });
+    } else {
+      syncToSupabase();
+    }
+    try { alert('v11 정리: 삭제 ' + removedIds.length + '개'); } catch (e) { console.log('v11 removed', removedIds.length); }
+  }
+  localStorage.setItem('pb_mig_v11', new Date().toISOString());
 }
 
 // =========================
