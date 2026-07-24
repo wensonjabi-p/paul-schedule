@@ -376,6 +376,7 @@ window.addEventListener('DOMContentLoaded', function() {
   if (sbUrlInput) sbUrlInput.value = sbUrl;
   if (sbKeyInput) sbKeyInput.value = sbKey;
   initSupabase();
+  runMigrationV10();
   loadSchedules();
   updateTodayHeader();
   updateTzUI();
@@ -446,6 +447,195 @@ function updateConnectionUI() {
 }
 
 // =========================
+// V10 DATA MIGRATION
+// =========================
+function migD(y, m, d) {
+  var dt = new Date(y, m - 1, d);
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+}
+function migRange(y1, m1, d1, y2, m2, d2) {
+  var out = [];
+  var cur = new Date(y1, m1 - 1, d1), end = new Date(y2, m2 - 1, d2);
+  while (cur <= end) {
+    out.push(migD(cur.getFullYear(), cur.getMonth() + 1, cur.getDate()));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+var MIG_V10_TS = '2026-09-01T00:00:00.000Z';
+function migEntry(id, name, date, start, end, type, loc) {
+  return { id: id, name: name, date: date, day: '', start: start, end: end, type: type, loc: loc, created_at: MIG_V10_TS };
+}
+function buildOfficialDataset() {
+  var classes = [];
+  // 비즈니스 조선어 (仓前 서원11-303): 1~8주, 화 3·4교시 + 목 1-2교시
+  for (var w = 1; w <= 8; w++) {
+    var mon = new Date(2026, 8, 7 + (w - 1) * 7); // 해당 주 월요일
+    var tue = migD(mon.getFullYear(), mon.getMonth() + 1, mon.getDate() + 1);
+    var thu = migD(mon.getFullYear(), mon.getMonth() + 1, mon.getDate() + 3);
+    var c1 = 2 * w - 1, c2 = 2 * w;
+    classes.push(migEntry('v10_biz_' + c1 + '_3', '비즈니스 조선어 ' + c1 + '차(3교시)', tue, '09:45', '10:30', 'offline', '仓前 서원11-303'));
+    classes.push(migEntry('v10_biz_' + c1 + '_4', '비즈니스 조선어 ' + c1 + '차(4교시)', tue, '10:40', '11:25', 'offline', '仓前 서원11-303'));
+    classes.push(migEntry('v10_biz_' + c2 + '_12', '비즈니스 조선어 ' + c2 + '차(1-2교시)', thu, '08:05', '09:35', 'offline', '仓前 서원11-303'));
+  }
+  // 한국어 듣기·말하기Ⅱ (下沙 A401): 1~16주, 월 6·7교시
+  for (var w2 = 1; w2 <= 16; w2++) {
+    var mon2 = new Date(2026, 8, 7 + (w2 - 1) * 7);
+    var md = migD(mon2.getFullYear(), mon2.getMonth() + 1, mon2.getDate());
+    classes.push(migEntry('v10_listen_' + w2 + '_6', '한국어 듣기·말하기Ⅱ ' + w2 + '차(6교시)', md, '13:20', '14:05', 'offline', '下沙 A401'));
+    classes.push(migEntry('v10_listen_' + w2 + '_7', '한국어 듣기·말하기Ⅱ ' + w2 + '차(7교시)', md, '14:10', '14:55', 'offline', '下沙 A401'));
+  }
+
+  // 학사 일정 (2026-2027학년도, 한·중 병기)
+  var events = [];
+  var evSeq = 0;
+  function addEvent(name, y1, m1, d1, y2, m2, d2) {
+    var dates = (y2 == null) ? [migD(y1, m1, d1)] : migRange(y1, m1, d1, y2, m2, d2);
+    dates.forEach(function(dt) { events.push(migEntry('v10_ev_' + (++evSeq), name, dt, '00:00', '23:59', 'other', '학교')); });
+  }
+  // 1학기
+  addEvent('📋 등록 报到注册', 2026, 9, 6);
+  addEvent('🎓 개강 上课', 2026, 9, 7);
+  addEvent('🧑‍🎓 신입생 등록 新生报到', 2026, 9, 7, 2026, 9, 8);
+  addEvent('🎉 개학식 开学典礼', 2026, 9, 8);
+  addEvent('📚 신입생 개강 新生上课', 2026, 9, 9);
+  addEvent('🪖 신입생 군사훈련 新生军训', 2026, 10, 8, 2026, 10, 22);
+  addEvent('🏃 운동회 校运动会', 2026, 10, 28, 2026, 10, 30);
+  addEvent('📝 기말 시험 期末考试', 2027, 1, 4, 2027, 1, 15);
+  addEvent('❄️ 겨울 방학 寒假', 2027, 1, 18);
+  // 2학기
+  addEvent('📋 등록 报到注册', 2027, 2, 21);
+  addEvent('🎓 개강 学生上课', 2027, 2, 22);
+  addEvent('🎓 졸업식·학위수여 毕业典礼暨学位授予', 2027, 6, 17);
+  addEvent('📝 기말 시험 期末考试', 2027, 6, 21, 2027, 7, 2);
+  addEvent('☀️ 여름 방학 暑假', 2027, 7, 3);
+
+  // 공휴일 (우선순위: 한국 > 세계 > 중국 — 같은 날짜 겹치면 높은 우선순위만 표기)
+  var holidayCands = [
+    [1, '🇰🇷 추석 연휴', 2026, 9, 24, 2026, 9, 24],
+    [1, '🇰🇷 추석', 2026, 9, 25, 2026, 9, 25],          // 2026 中秋节와 같은 날 → 한국만 표기
+    [1, '🇰🇷 추석 연휴', 2026, 9, 26, 2026, 9, 26],
+    [1, '🇰🇷 개천절', 2026, 10, 3, 2026, 10, 3],
+    [1, '🇰🇷 한글날', 2026, 10, 9, 2026, 10, 9],
+    [1, '🇰🇷 성탄절', 2026, 12, 25, 2026, 12, 25],
+    [1, '🇰🇷 신정', 2027, 1, 1, 2027, 1, 1],
+    [1, '🇰🇷 설날 연휴', 2027, 2, 6, 2027, 2, 6],
+    [1, '🇰🇷 설날', 2027, 2, 7, 2027, 2, 7],            // 2027 설날은 2/7(일) — 春节(2/6)와 하루 차이
+    [1, '🇰🇷 설날 연휴', 2027, 2, 8, 2027, 2, 8],
+    [1, '🇰🇷 대체휴일(설날)', 2027, 2, 9, 2027, 2, 9],
+    [1, '🇰🇷 삼일절', 2027, 3, 1, 2027, 3, 1],
+    [1, '🇰🇷 어린이날', 2027, 5, 5, 2027, 5, 5],
+    [1, '🇰🇷 현충일', 2027, 6, 6, 2027, 6, 6],
+    [1, '🇰🇷 광복절', 2027, 8, 15, 2027, 8, 15],
+    [3, '🇨🇳 国庆节', 2026, 10, 1, 2026, 10, 7],        // 10/3은 개천절에 밀려 제외
+    [3, '🇨🇳 清明节', 2027, 4, 5, 2027, 4, 5],
+    [3, '🇨🇳 劳动节', 2027, 5, 1, 2027, 5, 4],          // 5/5는 어린이날에 밀려 제외
+    [3, '🇨🇳 端午节', 2027, 6, 9, 2027, 6, 9]           // 2027 단오 6/9 (예측값, 확정 공표 전)
+  ];
+  var holidays = [];
+  var usedDates = {};
+  holidayCands.sort(function(a, b) { return a[0] - b[0]; });
+  holidayCands.forEach(function(h) {
+    var dates = migRange(h[2], h[3], h[4], h[5], h[6], h[7]);
+    dates.forEach(function(dt) {
+      if (usedDates[dt]) return;
+      usedDates[dt] = true;
+      holidays.push(migEntry('v10_h_' + dt, h[1], dt, '00:00', '23:59', 'other', ''));
+    });
+  });
+
+  var all = classes.concat(events, holidays);
+  return { classes: classes, events: events, holidays: holidays, all: all };
+}
+
+function runMigrationV10() {
+  if (localStorage.getItem('pb_mig_v10')) return;
+  var raw = localStorage.getItem('pb_schedules');
+  var stored = JSON.parse(raw || '[]');
+  var wasEmpty = stored.length === 0;
+
+  var removedIds = [], removedNames = [], keptUncertain = [];
+  var KEEP_IDS = ['def1', 'def2', 'def3'];
+  var OCR_NAMES = ['朝鲜语应用文写作', '旅游朝鲜语', '韩国(朝鲜)语听说 I', '韩国（朝鲜）语听说 I'];
+  var OLD_CLASS_NAMES = ['비즈니스 조선어', '한국어 청취회화Ⅱ'];
+  var TUTOR_PREFIXES = ['Vickey', 'Ingrid (Online)', 'Audrey (Online)', 'Ronnie', 'Ruth', 'Ciara', 'Bre', 'Ingrid', 'Audrey'];
+  var RENAMES = {
+    sem1: '🎓 개강 上课', sem2: '🎉 개학식 开学典礼',
+    sem3: '🏃 운동회 校运动会', sem4: '🏃 운동회 校运动会', sem5: '🏃 운동회 校运动会',
+    sem8: '❄️ 겨울 방학 寒假'
+  };
+
+  // (a) 완전 중복 제거 (첫 번째 것만 유지)
+  var deduped = [], dupRemoved = 0;
+  stored.forEach(function(s) {
+    if (deduped.some(function(x) { return isSameSchedule(x, s); })) { dupRemoved++; removedIds.push(s.id); return; }
+    deduped.push(s);
+  });
+
+  // (b) 삭제 규칙
+  var kept = [];
+  deduped.forEach(function(s) {
+    var name = String(s.name || '');
+    var id = String(s.id || '');
+    // 구 OCR 중국어 과목명: 종류 무관하게 삭제
+    if (OCR_NAMES.indexOf(name) >= 0) { removedIds.push(id); removedNames.push(name); return; }
+    // 기말 단건 구버전(sem6/sem7): 범위 일정으로 대체
+    if (id === 'sem6' || id === 'sem7') { removedIds.push(id); removedNames.push(name + ' (구버전 단건)'); return; }
+    // 구 기본 수업명: 반복(요일) 일정만 삭제, 날짜 지정은 보류
+    if (OLD_CLASS_NAMES.indexOf(name) >= 0) {
+      if (!s.date) { removedIds.push(id); removedNames.push(name); return; }
+      keptUncertain.push(name + ' (' + s.date + ')'); kept.push(s); return;
+    }
+    // 구 튜터링 접두사: zoom이 아니고 KEEP 대상도 아니면 삭제
+    var prefixHit = TUTOR_PREFIXES.some(function(p) { return name.indexOf(p) === 0; });
+    if (prefixHit) {
+      if (s.type !== 'zoom' && KEEP_IDS.indexOf(id) < 0) { removedIds.push(id); removedNames.push(name); return; }
+      keptUncertain.push(name + ' (' + (s.type || '') + ')'); kept.push(s); return;
+    }
+    kept.push(s);
+  });
+
+  // (c) 구 학사일정 라벨 한·중 병기로 개명
+  kept.forEach(function(s) { if (RENAMES[s.id]) s.name = RENAMES[s.id]; });
+
+  // (d) 공식 데이터셋 삽입 (이미 같은 내용이 있으면 건너뜀 — 멱등)
+  var dataset = buildOfficialDataset();
+  var added = 0;
+  dataset.all.forEach(function(ns) {
+    var dup = kept.some(function(s) {
+      return String(s.name || '') === ns.name && (s.date || '') === ns.date &&
+             (s.start || '') === ns.start && (s.end || '') === ns.end;
+    });
+    if (!dup) { kept.push(ns); added++; }
+  });
+
+  // (e) 저장 + 플래그 + Supabase 반영
+  localStorage.setItem('pb_schedules', JSON.stringify(kept));
+  localStorage.setItem('pb_mig_v10', new Date().toISOString());
+  schedules = kept;
+  if (sb && removedIds.length > 0) {
+    sb.from('schedules').delete().in('id', removedIds).then(function() {
+      syncToSupabase();
+    }).catch(function() { syncToSupabase(); });
+  } else {
+    syncToSupabase();
+  }
+
+  // (f) 결과 알림 (최초 설치 등 저장소가 비어 있었던 경우 제외)
+  if (!wasEmpty) {
+    var msg = '일정 데이터가 v10으로 업데이트됐습니다.\n\n' +
+      '🗑 삭제: ' + removedNames.length + '개 (구 수업·구 튜터링·중복 ' + dupRemoved + '개 포함)\n' +
+      '➕ 추가: ' + added + '개 (공식 수업 56, 학사일정, 공휴일)\n' +
+      '🏷 개명: 구 학사일정 6개를 한·중 병기로 변경';
+    if (keptUncertain.length > 0) {
+      msg += '\n\n❓ 확인 필요 (삭제하지 않고 유지): ' + keptUncertain.slice(0, 5).join(', ') +
+             (keptUncertain.length > 5 ? ' 외 ' + (keptUncertain.length - 5) + '개' : '');
+    }
+    try { alert(msg); } catch (e) { console.log(msg); }
+  }
+}
+
+// =========================
 // DATA
 // =========================
 function loadSchedules() {
@@ -455,19 +645,8 @@ function loadSchedules() {
   var defaults = [
     { id: 'def1', name: 'Ingrid James', day: '1', start: '16:30', end: '17:30', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() },
     { id: 'def2', name: 'Audrey', day: '1', start: '17:30', end: '18:30', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() },
-    { id: 'def3', name: 'Veronica', day: '4', start: '18:00', end: '19:00', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() },
-    { id: 'def4', name: '비즈니스 조선어', day: '1', start: '08:50', end: '09:50', type: 'offline', loc: '창전', created_at: new Date().toISOString() },
-    { id: 'def5', name: '비즈니스 조선어', day: '3', start: '10:40', end: '11:40', type: 'offline', loc: '창전', created_at: new Date().toISOString() },
-    { id: 'def6', name: '한국어 청취회화Ⅱ', day: '4', start: '14:00', end: '15:00', type: 'offline', loc: '하사', created_at: new Date().toISOString() },
-    { id: 'sem1', name: '🎓 개강', date: '2026-09-07', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem2', name: '🎉 개학식', date: '2026-09-08', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem3', name: '🏃 운동회', date: '2026-10-28', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem4', name: '🏃 운동회', date: '2026-10-29', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem5', name: '🏃 운동회', date: '2026-10-30', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem6', name: '📝 기말 시험', date: '2027-01-04', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem7', name: '📝 기말 시험', date: '2027-01-15', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() },
-    { id: 'sem8', name: '❄️ 겨울 방학', date: '2027-01-18', start: '00:00', end: '23:59', type: 'other', loc: '학교', created_at: new Date().toISOString() }
-  ];
+    { id: 'def3', name: 'Veronica', day: '4', start: '18:00', end: '19:00', type: 'zoom', loc: 'Zoom', created_at: new Date().toISOString() }
+  ].concat(buildOfficialDataset().all);
 
   var stored = JSON.parse(localStorage.getItem('pb_schedules') || '[]');
   // 마이그레이션: 과거 AI가 저장한 비표준 요일 값("월요일" 등)을 표준 형식으로 정규화
@@ -778,6 +957,17 @@ function normalizeSchedule(s) {
   var n = Object.assign({}, s);
   n.day = normalizeDayValue(n.day);
   return n;
+}
+
+// 중복 판정 (전역 공용): 반복(요일) 일정과 날짜 지정 일정은 서로 다른 종류 — 절대 서로 중복으로 보지 않음.
+// 둘 다 날짜 지정이면 date가 같을 때만, 둘 다 반복이면 day가 같을 때만 중복.
+function isSameSchedule(a, b) {
+  if (String(a.name || '').trim() !== String(b.name || '').trim()) return false;
+  if ((a.start || '') !== (b.start || '') || (a.end || '') !== (b.end || '')) return false;
+  var aDated = !!a.date, bDated = !!b.date;
+  if (aDated !== bDated) return false;
+  if (aDated) return a.date === b.date;
+  return String(a.day == null ? '' : a.day) === String(b.day == null ? '' : b.day);
 }
 
 function getTodayEvents(date) {
@@ -1887,16 +2077,7 @@ function applyKimiResult(skipConfirm) {
     });
 
     // Kimi 응답에 있는 것은 추가/업데이트 (단, 같은 종류·같은 내용의 중복은 건너뜀)
-    // 중복 판정: 반복(요일) 일정과 날짜 지정 일정은 서로 다른 종류 — 절대 서로 중복으로 보지 않음.
-    // 둘 다 날짜 지정이면 date가 같을 때만, 둘 다 반복이면 day가 같을 때만 중복.
-    function isSameSchedule(a, b) {
-      if (String(a.name || '').trim() !== String(b.name || '').trim()) return false;
-      if ((a.start || '') !== (b.start || '') || (a.end || '') !== (b.end || '')) return false;
-      var aDated = !!a.date, bDated = !!b.date;
-      if (aDated !== bDated) return false;
-      if (aDated) return a.date === b.date;
-      return String(a.day == null ? '' : a.day) === String(b.day == null ? '' : b.day);
-    }
+    // 중복 판정은 전역 isSameSchedule() 사용
     var addedCount = 0, dupCount = 0, dupRecurring = 0;
     newSchedules.forEach(function(ns) {
       var idx = merged.findIndex(function(s) { return s.id === ns.id; });
